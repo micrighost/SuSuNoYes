@@ -197,12 +197,12 @@ def handle_message(event):
                 time_icon = time_icon.replace("http", "https")
 
                 
-                # details_icon = "https://cdn2.ettoday.net/images/4224/4224901.jpg"
-                # current_transaction_price_icon = "https://cdn2.ettoday.net/images/4224/4224901.jpg"
-                # best_five_tick_icon  = "https://cdn2.ettoday.net/images/4224/4224901.jpg"
-                # datetime_icon = "https://cdn2.ettoday.net/images/4224/4224901.jpg"
-                # date_icon = "https://cdn2.ettoday.net/images/4224/4224901.jpg"
-                # time_icon = "https://cdn2.ettoday.net/images/4224/4224901.jpg"
+                # details_icon = "https://susunoyes.onrender.com/static/%E8%87%AA%E4%BB%A5%E7%82%BA%E6%98%AF%E7%9A%84%E4%BD%A9%E4%BD%A9%E5%88%87%E5%87%BA.png"
+                # current_transaction_price_icon = "https://susunoyes.onrender.com/static/%E8%87%AA%E4%BB%A5%E7%82%BA%E6%98%AF%E7%9A%84%E4%BD%A9%E4%BD%A9%E5%88%87%E5%87%BA.png"
+                # best_five_tick_icon  = "https://susunoyes.onrender.com/static/%E8%87%AA%E4%BB%A5%E7%82%BA%E6%98%AF%E7%9A%84%E4%BD%A9%E4%BD%A9%E5%88%87%E5%87%BA.png"
+                # datetime_icon = "https://susunoyes.onrender.com/static/%E8%87%AA%E4%BB%A5%E7%82%BA%E6%98%AF%E7%9A%84%E4%BD%A9%E4%BD%A9%E5%88%87%E5%87%BA.png"
+                # date_icon = "https://susunoyes.onrender.com/static/%E8%87%AA%E4%BB%A5%E7%82%BA%E6%98%AF%E7%9A%84%E4%BD%A9%E4%BD%A9%E5%88%87%E5%87%BA.png"
+                # time_icon = "https://susunoyes.onrender.com/static/%E8%87%AA%E4%BB%A5%E7%82%BA%E6%98%AF%E7%9A%84%E4%BD%A9%E4%BD%A9%E5%88%87%E5%87%BA.png"
                 print(details_icon)
 
                 
