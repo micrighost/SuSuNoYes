@@ -172,7 +172,7 @@ def handle_message(event):
 #==========================================================
         # 如果訪問爬蟲已經開啟則進入循環
         if ture_limiter.is_allowed():
-            print(我有盡到到")
+            print("我有盡到到")
 
             # 驗證是否有辦法抓到資料
             if WebCrawler_MIS_TWSE.webcrawler_ture(text):
