@@ -126,7 +126,7 @@ def handle_message(event):
 
         # 當接收到這些訊息，開啟訪問爬蟲
         if text == '1' or text == '叔叔我要報' or text == '叔叔我要抱':
-            print("12345643543")
+            
 
 
 
@@ -172,6 +172,7 @@ def handle_message(event):
 #==========================================================
         # 如果訪問爬蟲已經開啟則進入循環
         if ture_limiter.is_allowed():
+            print(我有盡到到")
 
             # 驗證是否有辦法抓到資料
             if WebCrawler_MIS_TWSE.webcrawler_ture(text):
