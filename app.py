@@ -195,7 +195,7 @@ def handle_message(event):
                 date_icon = date_icon.replace("http", "https")
                 time_icon = request.url_root + 'static/time.png'
                 time_icon = time_icon.replace("http", "https")
-
+                print("我有盡到到")
                 # 如果正確輸入股票代號
                 if text.isdigit() and len(text) == 4:   # 要是數字，還要剛好4個字節
 
