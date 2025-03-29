@@ -126,6 +126,7 @@ def handle_message(event):
 
         # 當接收到這些訊息，開啟訪問爬蟲
         if text == '1' or text == '叔叔我要報' or text == '叔叔我要抱':
+            print("12345643543")
 
 
 
