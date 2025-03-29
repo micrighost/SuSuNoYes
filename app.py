@@ -172,15 +172,19 @@ def handle_message(event):
 #==========================================================
         # 如果訪問爬蟲已經開啟則進入循環
         if ture_limiter.is_allowed():
-            print("我有盡到1")
+            
 
             # 驗證是否有辦法抓到資料
             if WebCrawler_MIS_TWSE.webcrawler_ture(text):
                 
-                # # 載入快速選單圖片
-                # details_icon = request.url_root + 'static/自以為是的佩佩切出.png'
-                # details_icon = details_icon.replace("http", "https")
-
+                # 載入快速選單圖片
+                details_icon = request.url_root + 'static/自以為是的佩佩切出.png'
+                print("這是1")
+                print(details_icon)
+                details_icon = details_icon.replace("http", "https")
+                print("這是2")
+                print(details_icon)
+                
 
                 # current_transaction_price_icon = request.url_root + 'static/快樂的佩佩.png'
                 # current_transaction_price_icon  = current_transaction_price_icon.replace("http", "https")
@@ -203,6 +207,7 @@ def handle_message(event):
                 datetime_icon = "https://susunoyes.onrender.com/static/%E8%87%AA%E4%BB%A5%E7%82%BA%E6%98%AF%E7%9A%84%E4%BD%A9%E4%BD%A9%E5%88%87%E5%87%BA.png"
                 date_icon = "https://susunoyes.onrender.com/static/%E8%87%AA%E4%BB%A5%E7%82%BA%E6%98%AF%E7%9A%84%E4%BD%A9%E4%BD%A9%E5%88%87%E5%87%BA.png"
                 time_icon = "https://susunoyes.onrender.com/static/%E8%87%AA%E4%BB%A5%E7%82%BA%E6%98%AF%E7%9A%84%E4%BD%A9%E4%BD%A9%E5%88%87%E5%87%BA.png"
+                print("這是3")
                 print(details_icon)
 
                 
