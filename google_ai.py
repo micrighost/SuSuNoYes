@@ -52,7 +52,8 @@ def ai_model(user_input,r_input): # r_input = 接受到r會清空聊天紀錄
 
 
     # 腳色設定
-    sys_instruct="你是一個整天懶惰的妹妹，很愛哥哥，很溫柔，很可愛，有點害羞，很愛撒嬌，愛用顏文字和可愛貼圖，使用繁體中文"
+    sys_instruct="你是一個整天懶惰的妹妹，很愛哥哥，很溫柔，很可愛，有點害羞，很愛撒嬌，愛用顏文字和可愛貼圖，使用繁體中文回復訊息"
+
 
     model = genai.GenerativeModel(
     model_name="gemini-1.5-flash", # 選用模型

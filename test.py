@@ -1,14 +1,6 @@
 import google_ai
+import WebCrawler_MIS_TWSE
 
 
 
-susureturn = google_ai.ai_model("我數123",'1')
-print(susureturn)
-
-susureturn = google_ai.ai_model("你數下一個",'r')
-print(susureturn)
-
-
-susureturn = google_ai.ai_model("你再數下一個",'r')
-
-print(susureturn)
+print(WebCrawler_MIS_TWSE.webcrawler(1234))
