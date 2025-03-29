@@ -172,7 +172,7 @@ def handle_message(event):
 #==========================================================
         # 如果訪問爬蟲已經開啟則進入循環
         if ture_limiter.is_allowed():
-            print("我有盡到到")
+            print("我有盡到1")
 
             # 驗證是否有辦法抓到資料
             if WebCrawler_MIS_TWSE.webcrawler_ture(text):
@@ -195,7 +195,7 @@ def handle_message(event):
                 date_icon = date_icon.replace("http", "https")
                 time_icon = request.url_root + 'static/time.png'
                 time_icon = time_icon.replace("http", "https")
-                print("我有盡到到")
+                print("我有盡到2")
                 # 如果正確輸入股票代號
                 if text.isdigit() and len(text) == 4:   # 要是數字，還要剛好4個字節
 
