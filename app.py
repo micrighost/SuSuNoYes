@@ -177,25 +177,35 @@ def handle_message(event):
             # 驗證是否有辦法抓到資料
             if WebCrawler_MIS_TWSE.webcrawler_ture(text):
                 
-                # 載入快速選單圖片
-                details_icon = request.url_root + 'static/自以為是的佩佩切出.png'
-                details_icon = details_icon.replace("http", "https")
+                # # 載入快速選單圖片
+                # details_icon = request.url_root + 'static/自以為是的佩佩切出.png'
+                # details_icon = details_icon.replace("http", "https")
 
 
-                current_transaction_price_icon = request.url_root + 'static/快樂的佩佩.png'
-                current_transaction_price_icon  = current_transaction_price_icon.replace("http", "https")
+                # current_transaction_price_icon = request.url_root + 'static/快樂的佩佩.png'
+                # current_transaction_price_icon  = current_transaction_price_icon.replace("http", "https")
 
-                best_five_tick_icon = request.url_root + 'static/悲傷的佩佩.png'
-                best_five_tick_icon  = best_five_tick_icon.replace("http", "https")
+                # best_five_tick_icon = request.url_root + 'static/悲傷的佩佩.png'
+                # best_five_tick_icon  = best_five_tick_icon.replace("http", "https")
 
 
-                datetime_icon = request.url_root + 'static/calendar.png'
-                datetime_icon = datetime_icon.replace("http", "https")
-                date_icon = request.url_root + 'static/calendar.png'
-                date_icon = date_icon.replace("http", "https")
-                time_icon = request.url_root + 'static/time.png'
-                time_icon = time_icon.replace("http", "https")
-                print("我有盡到2")
+                # datetime_icon = request.url_root + 'static/calendar.png'
+                # datetime_icon = datetime_icon.replace("http", "https")
+                # date_icon = request.url_root + 'static/calendar.png'
+                # date_icon = date_icon.replace("http", "https")
+                # time_icon = request.url_root + 'static/time.png'
+                # time_icon = time_icon.replace("http", "https")
+
+                
+                details_icon = "https://cdn2.ettoday.net/images/4224/4224901.jpg"
+                current_transaction_price_icon = "https://cdn2.ettoday.net/images/4224/4224901.jpg"
+                best_five_tick_icon  = "https://cdn2.ettoday.net/images/4224/4224901.jpg"
+                datetime_icon = "https://cdn2.ettoday.net/images/4224/4224901.jpg"
+                date_icon = "https://cdn2.ettoday.net/images/4224/4224901.jpg"
+                time_icon = "https://cdn2.ettoday.net/images/4224/4224901.jpg"
+                print(details_icon)
+
+                
                 # 如果正確輸入股票代號
                 if text.isdigit() and len(text) == 4:   # 要是數字，還要剛好4個字節
 
