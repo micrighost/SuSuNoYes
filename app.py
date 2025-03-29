@@ -179,33 +179,23 @@ def handle_message(event):
                 
                 # 載入快速選單圖片
                 details_icon = request.url_root + 'static/自以為是的佩佩切出.png'
-                print("這是1")
-                print(details_icon)
+                details_icon  = details_icon.replace("http://", "https://")
 
-
-                
 
                 current_transaction_price_icon = request.url_root + 'static/快樂的佩佩.png'
-
+                current_transaction_price_icon  = current_transaction_price_icon.replace("http://", "https://")
+                
 
                 best_five_tick_icon = request.url_root + 'static/悲傷的佩佩.png'
-
+                best_five_tick_icon  = best_five_tick_icon.replace("http://", "https://")
 
 
                 datetime_icon = request.url_root + 'static/calendar.png'
-
+                datetime_icon = datetime_icon.replace("http://", "https://")
                 date_icon = request.url_root + 'static/calendar.png'
-
+                date_icon = date_icon.replace("http://", "https://")
                 time_icon = request.url_root + 'static/time.png'
-
-
-                
-                # details_icon = "https://susunoyes.onrender.com/static/%E8%87%AA%E4%BB%A5%E7%82%BA%E6%98%AF%E7%9A%84%E4%BD%A9%E4%BD%A9%E5%88%87%E5%87%BA.png"
-                # current_transaction_price_icon = "https://susunoyes.onrender.com/static/%E8%87%AA%E4%BB%A5%E7%82%BA%E6%98%AF%E7%9A%84%E4%BD%A9%E4%BD%A9%E5%88%87%E5%87%BA.png"
-                # best_five_tick_icon  = "https://susunoyes.onrender.com/static/%E8%87%AA%E4%BB%A5%E7%82%BA%E6%98%AF%E7%9A%84%E4%BD%A9%E4%BD%A9%E5%88%87%E5%87%BA.png"
-                # datetime_icon = "https://susunoyes.onrender.com/static/%E8%87%AA%E4%BB%A5%E7%82%BA%E6%98%AF%E7%9A%84%E4%BD%A9%E4%BD%A9%E5%88%87%E5%87%BA.png"
-                # date_icon = "https://susunoyes.onrender.com/static/%E8%87%AA%E4%BB%A5%E7%82%BA%E6%98%AF%E7%9A%84%E4%BD%A9%E4%BD%A9%E5%88%87%E5%87%BA.png"
-                # time_icon = "https://susunoyes.onrender.com/static/%E8%87%AA%E4%BB%A5%E7%82%BA%E6%98%AF%E7%9A%84%E4%BD%A9%E4%BD%A9%E5%88%87%E5%87%BA.png"
+                time_icon = time_icon.replace("http://", "https://")
 
 
                 
