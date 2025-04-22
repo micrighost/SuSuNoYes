@@ -320,14 +320,17 @@ def handle_message(event):
                 true_limiter.enable_fetch_stock_data(False)
 
 
-        # 如果訪問叔叔AI已經開啟則進入循環
+
+        # 如果訪問叔叔AI（聊天模式）已經開啟則進入循環
         if true_limiter.is_allow_ai_susu_chat():
-            if text != '2' and text != '0' and text != '我要撩叔叔' and text != '我要聊叔叔':
+            # 過濾掉進入聊天模式的指令本身與退出指令
+            if text not in ['2', '0', '我要撩叔叔', '我要聊叔叔']:
+                # 如果使用者輸入'r'，讓AI「失憶」（重置對話）
                 if text == 'r':
-                    susureturn = google_ai.ai_model('你是誰?','r')
+                    # 呼叫google_ai的ai_model方法，傳入特殊指令讓AI重置
+                    susureturn = google_ai.ai_model('你是誰?', 'r')
 
-
-                    # 提示使用者輸入的信息
+                    # 回覆訊息給使用者，提示可繼續對話
                     line_bot_api.reply_message(
                         ReplyMessageRequest(
                             reply_token=event.reply_token,
@@ -337,10 +340,12 @@ def handle_message(event):
                         )
                     )
 
+                # 處理一般聊天輸入
                 if text != 'r':
-                    susureturn = google_ai.ai_model(text,"1")
+                    # 將使用者輸入傳給AI模型，取得回覆
+                    susureturn = google_ai.ai_model(text, "1")
                     print(susureturn)
-                    # 提示使用者輸入的信息
+                    # 回覆訊息給使用者，並提示可讓AI失憶或退出
                     line_bot_api.reply_message(
                         ReplyMessageRequest(
                             reply_token=event.reply_token,
@@ -350,13 +355,8 @@ def handle_message(event):
                         )
                     )
 
-
-
-
-            # 如果使用者輸入0，關閉訪問叔叔AI
+            # 如果使用者輸入0，關閉訪問叔叔AI（退出聊天模式）
             if text == '0':
-
-                # 關閉訪問叔叔AI
                 true_limiter.enable_ai_susu_chat(False)
 
 
@@ -364,8 +364,6 @@ def handle_message(event):
 
         # 如果訪問叔叔推薦股票已經開啟則進入循環
         if true_limiter.is_allow_intelligent_prediction():
-
-
 
 
             # 如果還沒進入training_is_ready狀態，就先抓取資料，並製作X_train, y_train
