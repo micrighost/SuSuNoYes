@@ -165,84 +165,61 @@ training_validator = TrainingReadyValidator()
 
 
 
-# 監聽叔叔事件
+# 監聽所有文字訊息事件
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
-    text = event.message.text # 取得訊息資訊
+    # 取得使用者輸入的文字內容
+    text = event.message.text
+    
+    # 初始化 LINE Messaging API 客戶端
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
 
-
-
-
-        # 當接收到這些訊息，開啟訪問爬蟲
-        if text == '1' or text == '叔叔我要報' or text == '叔叔我要抱':
-
-            # 提示使用者輸入的信息
+        # 處理「股票查詢」指令
+        if text in ['1', '叔叔我要報', '叔叔我要抱']:
+            # 回覆操作指引
             line_bot_api.reply_message(
                 ReplyMessageRequest(
                     reply_token=event.reply_token,
-                    messages=[TextMessage(
-                        text='叔叔要給你報，請輸入股票代號，或按0退出'
-                    )]
+                    messages=[TextMessage(text='叔叔要給你報，請輸入股票代號，或按0退出')]
                 )
             )
+            
+            # 狀態機設定
+            true_limiter.enable_fetch_stock_data(True)  # 啟用爬蟲模式
+            true_limiter.enable_ai_susu_chat(False)     # 關閉聊天模式
+            true_limiter.enable_intelligent_prediction(False)  # 關閉推薦模式
+            training_validator.mark_as_ready(False)      # 關閉訓練模式
 
-            # 允許用4個數字訪問爬蟲
-            true_limiter.enable_fetch_stock_data(True)
-            # 如果訪問叔叔AI的狀態開啟，則關閉其他狀態(進到新的狀態前就把舊狀態關起來)
-            true_limiter.enable_ai_susu_chat(False)
-            # 如果訪問叔叔推薦股票的狀態開啟，則關閉其他狀態(進到新的狀態前就把舊狀態關起來)
-            true_limiter.enable_intelligent_prediction(False)
-            # 關閉訓練準備狀態
-            training_validator.mark_as_ready(False)
-
-
-
-        # 當接收到這些訊息，開啟訪問叔叔AI
-        if text == '2' or text == '我要撩叔叔' or text == '我要聊叔叔':
-
-            # 提示使用者輸入的信息
+        # 處理「聊天模式」指令    
+        elif text in ['2', '我要撩叔叔', '我要聊叔叔']:
             line_bot_api.reply_message(
                 ReplyMessageRequest(
                     reply_token=event.reply_token,
-                    messages=[TextMessage(
-                        text='叔叔跟你聊，請輸入你要的聊的，或按0退出'
-                    )]
+                    messages=[TextMessage(text='叔叔跟你聊，請輸入你要的聊的，或按0退出')]
                 )
             )
+            
+            # 狀態機設定
+            true_limiter.enable_ai_susu_chat(True)      # 啟用聊天模式
+            true_limiter.enable_fetch_stock_data(False)  # 關閉爬蟲模式
+            true_limiter.enable_intelligent_prediction(False)  # 關閉推薦模式
+            training_validator.mark_as_ready(False)      # 關閉訓練模式
 
-            # 允許訪問叔叔AI
-            true_limiter.enable_ai_susu_chat(True)
-            # 如果訪問爬蟲股票資料的狀態開啟，則關閉其他狀態(進到新的狀態前就把舊狀態關起來)
-            true_limiter.enable_fetch_stock_data(False)
-            # 如果訪問叔叔推薦股票的狀態開啟，則關閉其他狀態(進到新的狀態前就把舊狀態關起來)
-            true_limiter.enable_intelligent_prediction(False)
-            # 關閉訓練準備狀態
-            training_validator.mark_as_ready(False)
-
-
-        # 當接收到這些訊息，開啟訪問叔叔AI
-        if text == '3' or text == '我要推叔叔':
-
-            # 提示使用者輸入的信息
+        # 處理「股票推薦」指令
+        elif text in ['3', '我要推叔叔']:
             line_bot_api.reply_message(
                 ReplyMessageRequest(
                     reply_token=event.reply_token,
-                    messages=[TextMessage(
-                        text='叔叔給你推，請輸入你要詢問的股票代號，或按0退出'
-                    )]
+                    messages=[TextMessage(text='叔叔給你推，請輸入你要詢問的股票代號，或按0退出')]
                 )
             )
-
-            # 允許訪問叔叔推薦股票
-            true_limiter.enable_intelligent_prediction(True)
-            # 如果訪問爬蟲股票資料的狀態開啟，則關閉其他狀態(進到新的狀態前就把舊狀態關起來)
-            true_limiter.enable_fetch_stock_data(False)
-            # 如果訪問叔叔AI的狀態開啟，則關閉其他狀態(進到新的狀態前就把舊狀態關起來)
-            true_limiter.enable_ai_susu_chat(False)
-            # 關閉訓練準備狀態
-            training_validator.mark_as_ready(False)
+            
+            # 狀態機設定
+            true_limiter.enable_intelligent_prediction(True)  # 啟用推薦模式
+            true_limiter.enable_fetch_stock_data(False)       # 關閉爬蟲模式
+            true_limiter.enable_ai_susu_chat(False)           # 關閉聊天模式
+            training_validator.mark_as_ready(False)           # 關閉訓練模式
 
 
 #==========================================================
@@ -509,8 +486,6 @@ def handle_message(event):
 
 
 
-
-
             # 如果使用者輸入0，關閉訪問叔叔推薦股票
             if text == '0':
                 # 關閉叔叔推薦股票
@@ -523,56 +498,82 @@ def handle_message(event):
 
 
 
-# quick_reply(快速選單的事件)PostbackEvent
-@handler.add(PostbackEvent)
+# 處理 LINE 的 PostbackEvent (快速選單回傳事件)
+@handler.add(PostbackEvent)  # 註冊 Postback 事件處理器
 def handle_postback(event):
+    # 使用 LINE Messaging API 的客戶端
     with ApiClient(configuration) as api_client:
-        line_bot_api = MessagingApi(api_client)
-        postback_data = event.postback.data
-
-        # 把quick_reply傳過來的資料分裝成股票代號和訊息
-        postback_data_stock_code = postback_data.split(',')[0]
-        postback_data_text = postback_data.split(',')[1]
+        line_bot_api = MessagingApi(api_client)  # 初始化 LINE Bot API
         
-   
-        # 詳細資料的事件
+        # 取得 Postback 事件中的資料
+        postback_data = event.postback.data  # 格式範例: "2330,詳細資料"
+
+        # 解析 Postback 資料
+        postback_data_stock_code = postback_data.split(',')[0]  # 提取股票代號 (如 "2330")
+        postback_data_text = postback_data.split(',')[1]  # 提取指令類型 (如 "詳細資料")
+        
+        # ---------------------------
+        # 處理「詳細資料」請求
+        # ---------------------------
         if postback_data_text == '詳細資料':
-            df = WebCrawler_MIS_TWSE.webcrawler(postback_data_stock_code) # 丟入股票代號，獲取資料表
-
-            # 用token傳訊息給使用者
+            # 呼叫爬蟲模組取得股票數據
+            df = WebCrawler_MIS_TWSE.webcrawler(postback_data_stock_code)
+            
+            # 回傳轉置後的 DataFrame 方便閱讀
             line_bot_api.reply_message(
                 ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[TextMessage(text='詳細資料：\n' + str(df.T))]                    
+                    reply_token=event.reply_token,  # 使用事件的回覆 Token
+                    messages=[
+                        TextMessage(
+                            text='詳細資料：\n' + str(df.T)  # 轉置 DataFrame 並轉為字串
+                        )
+                    ]                    
                 )
             )
         
-        # 當盤成交價的事件
+        # ---------------------------
+        # 處理「當盤成交價」請求
+        # ---------------------------
         if postback_data_text == '當盤成交價':
-            df = WebCrawler_MIS_TWSE.webcrawler(postback_data_stock_code) # 丟入股票代號，獲取資料表
-
-            # 用token傳訊息給使用者
+            df = WebCrawler_MIS_TWSE.webcrawler(postback_data_stock_code)
+            
+            # 提取特定欄位數據
             line_bot_api.reply_message(
                 ReplyMessageRequest(
                     reply_token=event.reply_token,
-                    messages=[TextMessage(text='當盤成交價：' + df['當盤成交價'].iloc[0] + '\n'
-                                                 + '當盤成交量：' + df['當盤成交量'].iloc[0])]                    
+                    messages=[
+                        TextMessage(
+                            text='當盤成交價：' + df['當盤成交價'].iloc[0] + '\n'  # 第一筆成交價
+                                 + '當盤成交量：' + df['當盤成交量'].iloc[0]  # 第一筆成交量
+                        )
+                    ]                    
                 )
             )
-        # 當盤成交價的事件
+
+        # ---------------------------
+        # 處理「最佳五檔」請求
+        # ---------------------------
         if postback_data_text == '最佳五檔':
-            df = WebCrawler_MIS_TWSE.webcrawler(postback_data_stock_code) # 丟入股票代號，獲取資料表
+            df = WebCrawler_MIS_TWSE.webcrawler(postback_data_stock_code)
+            
+            # 篩選五檔相關欄位
+            df = pd.DataFrame(
+                df,
+                columns=[
+                    '五檔賣價(從低到高，以_分隔資料)',
+                    '五檔賣量(從低到高，以_分隔資料)',
+                    '五檔買價(從高到低，以_分隔資料)',
+                    '五檔買量(從高到低，以_分隔資料)'
+                ]
+            )
 
-            # 從資料表選取需要的列
-            df = pd.DataFrame(df, columns=['五檔賣價(從低到高，以_分隔資料)','五檔賣量(從低到高，以_分隔資料)',
-                                           '五檔買價(從高到低，以_分隔資料)','五檔買量(從高到低，以_分隔資料)'])
-
-
-            # 用token傳訊息給使用者
+            # 回傳轉置後的五檔數據
             line_bot_api.reply_message(
                 ReplyMessageRequest(
                     reply_token=event.reply_token,
-                    messages=[TextMessage(text=str(df.T))]                    
+                    messages=[
+                        TextMessage(text=str(df.T))  # 轉置後以垂直方式顯示
+                    ]                    
                 )
             )
 
