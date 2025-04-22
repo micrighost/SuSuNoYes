@@ -442,6 +442,19 @@ def handle_message(event):
                         text=""
 
 
+                else:
+                    if((text.isdigit() == False) or len(text) != 4) and text != "0" and text != "3" and text != "":
+                        print(text)
+                        # 提示使用者輸入的信息
+                        line_bot_api.reply_message(
+                            ReplyMessageRequest(
+                                reply_token=event.reply_token,
+                                messages=[TextMessage(
+                                    text='現在是要查詢資料庫裡是否有資料可以幫你分析，請輸入妳想要分析的股票代號'
+                                )]
+                            )
+                        )
+
             # 如果開啟了training_is_ready狀態，就準備訓練模型了
             if training_validator.check_training_ready():
 
@@ -494,17 +507,7 @@ def handle_message(event):
                             )
                         )
 
-            if ((text.isdigit() == False) or len(text) != 4) and text != "0" and text != "3" and text != "":
-                print(text)
-                # 提示使用者輸入的信息
-                line_bot_api.reply_message(
-                    ReplyMessageRequest(
-                        reply_token=event.reply_token,
-                        messages=[TextMessage(
-                            text='現在是要查詢資料庫裡是否有資料可以幫你分析，請輸入妳想要分析的股票代號'
-                        )]
-                    )
-                )
+
 
 
 
