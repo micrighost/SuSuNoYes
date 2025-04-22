@@ -1,6 +1,5 @@
-# 傳入股票代號回傳資料表
 def webcrawler(stock_symbol):
-
+    """傳入股票代號回傳資料表"""
     # 設定目標股票的代號
     stock_symbol
 
@@ -88,8 +87,9 @@ def webcrawler(stock_symbol):
 
 
 
-# 傳入股票代號，回傳是否有抓到資料
-def webcrawler_ture(stock_symbol):
+
+def webcrawler_true(stock_symbol):
+    """傳入股票代號，回傳是否有抓到資料"""
 
     # 設定目標股票的代號
     stock_symbol

@@ -141,11 +141,11 @@ class TrainingReadyValidator:
         """初始化訓練狀態相關參數"""
         self.ticker: str = ""            # 股票代碼
         self.is_ready: bool = False      # 準備訓練完成標誌
-        self.X_train = None              # 訓練特徵數據 (建議使用具體數據結構)
+        self.X_train = None              # 訓練特徵數據
         self.y_train = None              # 訓練目標數據
 
     def check_training_ready(self) -> bool:
-        """檢查訓練是否完成 (簡化寫法)"""
+        """檢查訓練是否完成"""
         return self.is_ready  # 直接返回布林值
 
     # 新增訓練數據設置方法
@@ -162,6 +162,12 @@ class TrainingReadyValidator:
 training_validator = TrainingReadyValidator()
 
 
+def get_https_image_url(filename):
+    """生成 HTTPS 圖片 URL"""
+    # 獲取當前服務器根 URL 並拼接圖片路徑
+    # 強制轉換為 HTTPS（LINE 要求圖片必須使用 HTTPS）
+    base_url = request.url_root.replace("http://", "https://")
+    return f"{base_url}static/{filename}"
 
 
 
@@ -223,100 +229,94 @@ def handle_message(event):
 
 
 #==========================================================
-        # 如果訪問爬蟲股票資料已經開啟則進入循環
+        # 檢查是否處於爬蟲模式（允許查詢股票資料的狀態）
         if true_limiter.is_allow_fetch_stock_data():
-
-            # 驗證是否有辦法抓到資料
-            if WebCrawler_MIS_TWSE.webcrawler_ture(text):
+            
+            # 驗證股票代號是否有效（檢查是否能取得資料）
+            if WebCrawler_MIS_TWSE.webcrawler_true(text):
                 
-                # 載入快速選單圖片
-                # 取得目前請求的url並加上static裡圖片的地址
-                details_icon = request.url_root + 'static/自以為是的佩佩切出.png'
-                # 把http://轉成"https://"
-                details_icon  = details_icon.replace("http://", "https://")
-                current_transaction_price_icon = request.url_root + 'static/快樂的佩佩.png'
-                current_transaction_price_icon  = current_transaction_price_icon.replace("http://", "https://")
-                best_five_tick_icon = request.url_root + 'static/悲傷的佩佩.png'
-                best_five_tick_icon  = best_five_tick_icon.replace("http://", "https://")
-                datetime_icon = request.url_root + 'static/calendar.png'
-                datetime_icon = datetime_icon.replace("http://", "https://")
-                date_icon = request.url_root + 'static/calendar.png'
-                date_icon = date_icon.replace("http://", "https://")
-                time_icon = request.url_root + 'static/time.png'
-                time_icon = time_icon.replace("http://", "https://")
+                # ---------------------------
+                # 設定快速選單圖示路徑
+                # ---------------------------
+                details_icon = get_https_image_url('自以為是的佩佩切出.png')
+                current_transaction_price_icon = get_https_image_url('快樂的佩佩.png')
+                best_five_tick_icon = get_https_image_url('悲傷的佩佩.png')
+                datetime_icon = get_https_image_url('calendar.png')
+                date_icon = get_https_image_url('calendar.png')
+                time_icon = get_https_image_url('time.png')
 
-
-                # 如果正確輸入股票代號
-                if text.isdigit() and len(text) == 4:   # 要是數字，還要剛好4個字節
-
-                    # 快速選單
+                # ---------------------------
+                # 處理有效股票代號（4位數字）
+                # ---------------------------
+                if text.isdigit() and len(text) == 4:
+                    # 建立快速回覆選單
                     quickReply = QuickReply(
                         items=[
-
-                            # 詳細資料的quickReply
+                            # 詳細資料選項
                             QuickReplyItem(
                                 action=PostbackAction(
-                                    label="詳細資料",   # 選單上的文字
-                                    data=text + ",詳細資料", # 把股票代號跟辨別哪個事件的文字打包入data傳入快速選單的事件
-                                    display_text="這是詳細資料" # 按下後的自動回復語
+                                    label="詳細資料",          # 選項顯示文字
+                                    data=f"{text},詳細資料",   # 格式：股票代號,指令類型
+                                    display_text="這是詳細資料" # 用戶點擊後顯示的文字
                                 ),
-                                image_url=details_icon # 選單圖片
+                                image_url=details_icon  # 自定義圖示
                             ),
                             
-                            # 當盤成交價的quickReply
+                            # 當盤成交價選項
                             QuickReplyItem(
                                 action=PostbackAction(
-                                    label="當盤成交價", # 選單上的文字
-                                    data=text + ",當盤成交價",  # 把股票代號跟辨別哪個事件的文字打包入data傳入快速選單的事件
-                                    display_text="這是當盤成交價" # 按下後的自動回復語
+                                    label="當盤成交價",
+                                    data=f"{text},當盤成交價",
+                                    display_text="這是當盤成交價"
                                 ),
-                                image_url=current_transaction_price_icon # 選單圖片
+                                image_url=current_transaction_price_icon
                             ),
-
-                            # 最佳五檔的quickReply
+                            
+                            # 最佳五檔選項
                             QuickReplyItem(
                                 action=PostbackAction(
-                                    label="最佳五檔", # 選單上的文字
-                                    data=text + ",最佳五檔",  # 把股票代號跟辨別哪個事件的文字打包入data傳入快速選單的事件
-                                    display_text="這是最佳五檔" # 按下後的自動回復語
+                                    label="最佳五檔",
+                                    data=f"{text},最佳五檔",
+                                    display_text="這是最佳五檔"
                                 ),
-                                image_url=best_five_tick_icon # 選單圖片
+                                image_url=best_five_tick_icon
                             )
                         ]
                     )
 
-
-                    
-                    # 提示使用者輸入的信息
+                    # 回覆帶有快速選單的訊息
                     line_bot_api.reply_message(
                         ReplyMessageRequest(
                             reply_token=event.reply_token,
-                            messages=[TextMessage(
-                                text='叔叔要給你報，請選擇你要的功能，你不選擇就算了',
-                                quick_reply=quickReply # 傳送上面訊息後，把快速選單啟動起來
-                            )]
+                            messages=[
+                                TextMessage(
+                                    text='叔叔要給你報，請選擇你要的功能，你不選擇就算了',
+                                    quick_reply=quickReply  # 附加快速選單
+                                )
+                            ]
                         )
                     )
-                    # 關閉用4個數字訪問爬蟲
+                    
+                    # 關閉爬蟲模式（避免重複觸發）
                     true_limiter.enable_fetch_stock_data(False)
 
-                
-
-            if WebCrawler_MIS_TWSE.webcrawler_ture(text) == False and text != '1' and text != '0' and  text != '叔叔我要報' and  text != '叔叔我要抱' :
-                # 提示使用者輸入的信息
+            # ---------------------------
+            # 處理無效輸入
+            # ---------------------------
+            # 若股票代號無效且不是指令關鍵字
+            elif not WebCrawler_MIS_TWSE.webcrawler_true(text) and text not in ['1', '0', '叔叔我要報', '叔叔我要抱']:
                 line_bot_api.reply_message(
                     ReplyMessageRequest(
                         reply_token=event.reply_token,
-                        messages=[TextMessage(
-                            text='沒有這股票不要騙叔叔，給我輸入股票代號，或按0退出'
-                        )]
+                        messages=[TextMessage(text='沒有這股票不要騙叔叔，給我輸入股票代號，或按0退出')]
                     )
                 )
 
-            # 如果使用者輸入0，關閉訪問爬蟲狀態
+            # ---------------------------
+            # 處理退出指令
+            # ---------------------------
             if text == '0':
-
-                # 關閉用4個數字訪問爬蟲
+                # 關閉爬蟲模式
                 true_limiter.enable_fetch_stock_data(False)
 
 
