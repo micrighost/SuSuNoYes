@@ -3,3 +3,4 @@ flask==3.0.0
 python-dotenv==1.0.1
 pandas==2.2.2
 google-generativeai==0.8.4
+gunicorn==23.0.0 # Render部署要用
