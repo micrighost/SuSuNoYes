@@ -100,66 +100,9 @@ def callback():
 
 
 
-class TrueLimiter:
-    def __init__(self):
-        """初始化所有功能權限開關"""
-        self.allow_fetch_stock_data = False  # 股票數據爬取權限
-        self.allow_ai_susu_chat = False      # AI 聊天功能權限
-        self.allow_intelligent_prediction = False  # 智能預測權限
+from allow_validator import allow_validator
+from training_validator import training_validator
 
-    def is_allow_fetch_stock_data(self) -> bool:
-        """檢查股票數據爬取權限 (簡化寫法)"""
-        return self.allow_fetch_stock_data  # 直接返回布林值
-
-    def is_allow_ai_susu_chat(self) -> bool:
-        """檢查 AI 聊天功能權限"""
-        return self.allow_ai_susu_chat
-
-    def is_allow_intelligent_prediction(self) -> bool:
-        """檢查智能預測功能權限"""
-        return self.allow_intelligent_prediction
-
-    # 新增權限切換方法
-    def enable_fetch_stock_data(self, enable: bool):
-        """設置股票數據爬取權限"""
-        self.allow_fetch_stock_data = enable
-
-    def enable_ai_susu_chat(self, enable: bool):
-        """設置 AI 聊天功能權限"""
-        self.allow_ai_susu_chat = enable
-
-    def enable_intelligent_prediction(self, enable: bool):
-        """設置智能預測功能權限"""
-        self.allow_intelligent_prediction = enable
-
-# 實例化權限控制器
-true_limiter = TrueLimiter()
-
-# 訓練狀態控制器 (修正命名並添加型別提示)
-class TrainingReadyValidator:
-    def __init__(self):
-        """初始化訓練狀態相關參數"""
-        self.ticker: str = ""            # 股票代碼
-        self.is_ready: bool = False      # 準備訓練完成標誌
-        self.X_train = None              # 訓練特徵數據
-        self.y_train = None              # 訓練目標數據
-
-    def check_training_ready(self) -> bool:
-        """檢查訓練是否完成"""
-        return self.is_ready  # 直接返回布林值
-
-    # 新增訓練數據設置方法
-    def set_training_data(self, X_train, y_train):
-        """設置訓練數據"""
-        self.X_train = X_train  # 實際使用時應驗證數據格式
-        self.y_train = y_train
-
-    def mark_as_ready(self, ready: bool):
-        """標記訓練狀態"""
-        self.is_ready = ready
-
-# 實例化訓練狀態驗證器
-training_validator = TrainingReadyValidator()
 
 
 def get_https_image_url(filename):
@@ -192,9 +135,9 @@ def handle_message(event):
             )
             
             # 狀態機設定
-            true_limiter.enable_fetch_stock_data(True)  # 啟用爬蟲模式
-            true_limiter.enable_ai_susu_chat(False)     # 關閉聊天模式
-            true_limiter.enable_intelligent_prediction(False)  # 關閉推薦模式
+            allow_validator.enable_fetch_stock_data(True)  # 啟用爬蟲模式
+            allow_validator.enable_ai_chat(False)     # 關閉聊天模式
+            allow_validator.enable_intelligent_prediction(False)  # 關閉推薦模式
             training_validator.mark_as_ready(False)      # 關閉訓練模式
 
         # 處理「聊天模式」指令    
@@ -207,9 +150,9 @@ def handle_message(event):
             )
             
             # 狀態機設定
-            true_limiter.enable_ai_susu_chat(True)      # 啟用聊天模式
-            true_limiter.enable_fetch_stock_data(False)  # 關閉爬蟲模式
-            true_limiter.enable_intelligent_prediction(False)  # 關閉推薦模式
+            allow_validator.enable_ai_chat(True)      # 啟用聊天模式
+            allow_validator.enable_fetch_stock_data(False)  # 關閉爬蟲模式
+            allow_validator.enable_intelligent_prediction(False)  # 關閉推薦模式
             training_validator.mark_as_ready(False)      # 關閉訓練模式
 
         # 處理「股票推薦」指令
@@ -222,15 +165,15 @@ def handle_message(event):
             )
             
             # 狀態機設定
-            true_limiter.enable_intelligent_prediction(True)  # 啟用推薦模式
-            true_limiter.enable_fetch_stock_data(False)       # 關閉爬蟲模式
-            true_limiter.enable_ai_susu_chat(False)           # 關閉聊天模式
+            allow_validator.enable_intelligent_prediction(True)  # 啟用推薦模式
+            allow_validator.enable_fetch_stock_data(False)       # 關閉爬蟲模式
+            allow_validator.enable_ai_chat(False)           # 關閉聊天模式
             training_validator.mark_as_ready(False)           # 關閉訓練模式
 
 
 #==========================================================
         # 檢查是否處於爬蟲模式（允許查詢股票資料的狀態）
-        if true_limiter.is_allow_fetch_stock_data():
+        if allow_validator.is_allow_fetch_stock_data():
             
             # 驗證股票代號是否有效（檢查是否能取得資料）
             if WebCrawler_MIS_TWSE.webcrawler_true(text):
@@ -298,7 +241,7 @@ def handle_message(event):
                     )
                     
                     # 關閉爬蟲模式（避免重複觸發）
-                    true_limiter.enable_fetch_stock_data(False)
+                    allow_validator.enable_fetch_stock_data(False)
 
             # ---------------------------
             # 處理無效輸入
@@ -317,12 +260,12 @@ def handle_message(event):
             # ---------------------------
             if text == '0':
                 # 關閉爬蟲模式
-                true_limiter.enable_fetch_stock_data(False)
+                allow_validator.enable_fetch_stock_data(False)
 
 
 
         # 如果訪問叔叔AI（聊天模式）已經開啟則進入循環
-        if true_limiter.is_allow_ai_susu_chat():
+        if allow_validator.is_allow_ai_chat():
             # 過濾掉進入聊天模式的指令本身與退出指令
             if text not in ['2', '0', '我要撩叔叔', '我要聊叔叔']:
                 # 如果使用者輸入'r'，讓AI「失憶」（重置對話）
@@ -357,30 +300,28 @@ def handle_message(event):
 
             # 如果使用者輸入0，關閉訪問叔叔AI（退出聊天模式）
             if text == '0':
-                true_limiter.enable_ai_susu_chat(False)
+                allow_validator.enable_ai_chat(False)
 
 
 
 
-        # 如果訪問叔叔推薦股票已經開啟則進入循環
-        if true_limiter.is_allow_intelligent_prediction():
-
-
-            # 如果還沒進入training_is_ready狀態，就先抓取資料，並製作X_train, y_train
-            if training_validator.check_training_ready() == False :
-
-                # 防止text = 3 直接丟入fetch_stock_data產生報錯
-                if text.isdigit() and len(text) == 4:   # 要是數字，還要剛好4個字節
-        
-                    # 轉換4個數字為台股編號
+        # 如果「智能預測模式」已開啟
+        if allow_validator.is_allow_intelligent_prediction():
+            
+            # 檢查是否已完成數據準備階段
+            if training_validator.check_training_ready() == False:
+                
+                # 驗證輸入是否為4位數股票代號
+                if text.isdigit() and len(text) == 4:
+                    
+                    # 格式化成台灣股票代號格式 (如 2330.TW)
                     training_validator.ticker = text + '.TW'
-
-                    # 嘗試獲取台股資料，錯誤時返回空df
+                    
+                    # 抓取歷史股價數據
                     df = intelligent_prediction.fetch_stock_data(training_validator.ticker)
-
-                    # 如果df為空
+                    
                     if df.empty:
-                        # 提示使用者輸入的信息
+                        # 數據抓取失敗回應
                         line_bot_api.reply_message(
                             ReplyMessageRequest(
                                 reply_token=event.reply_token,
@@ -389,9 +330,8 @@ def handle_message(event):
                                 )]
                             )
                         )
-
                     else:
-                        # 提示使用者輸入的信息
+                        # 數據抓取成功回應
                         line_bot_api.reply_message(
                             ReplyMessageRequest(
                                 reply_token=event.reply_token,
@@ -400,60 +340,68 @@ def handle_message(event):
                                 )]
                             )
                         )
-                        # 給股票資料表，返回X_train和y_train
-                        # shuffle為要不要開起洗牌df功能，這裡不開啟，
-                        # 因為Keras 通常會從提供的數據集中選擇最後的部分作為驗證數據，這樣的驗證方式更貼近要預測的時間點。
-                        X_train, y_train = intelligent_prediction.prepare_data(df,shuffle=False)
-
-                        # 設定訓練準備完成標記為True
+                        
+                        # 準備訓練數據 (不洗牌以保留時間序列特性)
+                        X_train, y_train = intelligent_prediction.prepare_data(df, shuffle=False)
+                        
+                        # 標記數據準備完成
                         training_validator.mark_as_ready(True)
-
-                        # 把X_train和y_train傳入全域變數
+                        
+                        # 儲存訓練數據到全局變數
                         training_validator.X_train = X_train
                         training_validator.y_train = y_train
+                        
+                        # 清空輸入內容避免干擾後續流程
+                        text = ""
 
-
-                        # 把text清空，防止訊息繼續傳遞
-                        text=""
-
-
-                else:
-                    if((text.isdigit() == False) or len(text) != 4) and text != "0" and text != "3" and text != "":
-                        print(text)
-                        # 提示使用者輸入的信息
-                        line_bot_api.reply_message(
-                            ReplyMessageRequest(
-                                reply_token=event.reply_token,
-                                messages=[TextMessage(
-                                    text='現在是要查詢資料庫裡是否有資料可以幫你分析，請輸入妳想要分析的股票代號'
-                                )]
-                            )
+                # 處理無效輸入
+                elif ((text.isdigit() == False) or len(text) != 4) and text not in ["0", "3", ""]:
+                    print(f"無效輸入: {text}")
+                    line_bot_api.reply_message(
+                        ReplyMessageRequest(
+                            reply_token=event.reply_token,
+                            messages=[TextMessage(
+                                text='現在是要查詢資料庫裡是否有資料可以幫你分析，請輸入妳想要分析的股票代號'
+                            )]
                         )
+                    )
 
-            # 如果開啟了training_is_ready狀態，就準備訓練模型了
+            # 數據準備完成後的模型訓練階段
             if training_validator.check_training_ready():
-
-                # 如果這時候
-                if text.isdigit() and (len(text) < 4):   # 要是數字，字節還要小於4
-
-                    # 輸入X_train和y_train去訓練，返回訓練好的模型
-                    model = intelligent_prediction.train_model(training_validator.X_train, training_validator.y_train, epochs=int(text), batch_size=5, validation_split=0.25)
-                    # 給股票代號，返回今日的開高收低量的資料表
+                
+                # 驗證訓練次數輸入 (1-3位數)
+                if text.isdigit() and (len(text) < 4):
+                    
+                    # 模型訓練參數設定
+                    epochs = int(text)
+                    batch_size = 5
+                    validation_split = 0.25
+                    
+                    # 啟動模型訓練
+                    model = intelligent_prediction.train_model(
+                        training_validator.X_train,
+                        training_validator.y_train,
+                        epochs=epochs,
+                        batch_size=batch_size,
+                        validation_split=validation_split
+                    )
+                    
+                    # 獲取最新股價數據
                     stock_data_today_df = intelligent_prediction.fetch_stock_data_today(training_validator.ticker)
-
-                    # 把資料表的資料摳出來
+                    
+                    # 提取特徵數據
                     X_test = stock_data_today_df[['open', 'high', 'low', 'close', 'volume']]
-
-                    #給訓練好的模型並把X_train導入用來得到標準化的轉換標準，然後用X_test做預測，返回預測結果
+                    
+                    # 執行預測
                     predictions = intelligent_prediction.prediction(model, training_validator.X_train, X_test)
-
-                    # 把輸出的預測結果轉換成文字
+                    
+                    # 轉換預測結果為文字描述
                     status_descriptions = intelligent_prediction.convert_status(predictions)
-
-
-                    details_icon = request.url_root + 'static/model_accuracy.png'
-                    # 把http://轉成"https://"
-                    details_icon  = details_icon.replace("http://", "https://")
+                    
+                    # 生成模型準確率圖表連結
+                    details_icon = get_https_image_url('model_accuracy.png')
+                    
+                    # 發送預測結果與圖表
                     line_bot_api.reply_message(
                         ReplyMessageRequest(
                             reply_token=event.reply_token,
@@ -463,117 +411,38 @@ def handle_message(event):
                             ]
                         )
                     )
-
-                    # 關閉訓練準備狀態
+                    
+                    # 重置訓練狀態
                     training_validator.mark_as_ready(False)
 
-                    
 
-                else:
-                    # 如果已經在訓練準備階段，但是傳入的字又不是上個階段留下來的空字串，那就提示再次輸入
-                    if text != "":
-                        # 提示使用者輸入的信息
-                        line_bot_api.reply_message(
-                            ReplyMessageRequest(
-                                reply_token=event.reply_token,
-                                messages=[TextMessage(
-                                    text='現在是要訓練模型，請輸入妳想要的訓練次數0-999'
-                                )]
-                            )
+                # 處理訓練階段的無效輸入
+                elif text != "":
+                    line_bot_api.reply_message(
+                        ReplyMessageRequest(
+                            reply_token=event.reply_token,
+                            messages=[TextMessage(
+                                text='現在是要訓練模型，請輸入妳想要的訓練次數4-999'
+                            )]
                         )
+                    )
 
-
-
-            # 如果使用者輸入0，關閉訪問叔叔推薦股票
+            # 處理退出指令
             if text == '0':
-                # 關閉叔叔推薦股票
-                TrueLimiter.enable_intelligent_prediction(False)
-                # 關閉training_is_ready狀態
+                # 關閉智能預測模式
+                allow_validator.enable_intelligent_prediction(False)
+                # 重置訓練狀態
                 training_validator.check_training_ready(False)
            
             
 
 
-
+from postback_handler import handle_postback
 
 # 處理 LINE 的 PostbackEvent (快速選單回傳事件)
-@handler.add(PostbackEvent)  # 註冊 Postback 事件處理器
-def handle_postback(event):
-    # 使用 LINE Messaging API 的客戶端
-    with ApiClient(configuration) as api_client:
-        line_bot_api = MessagingApi(api_client)  # 初始化 LINE Bot API
-        
-        # 取得 Postback 事件中的資料
-        postback_data = event.postback.data  # 格式範例: "2330,詳細資料"
-
-        # 解析 Postback 資料
-        postback_data_stock_code = postback_data.split(',')[0]  # 提取股票代號 (如 "2330")
-        postback_data_text = postback_data.split(',')[1]  # 提取指令類型 (如 "詳細資料")
-        
-        # ---------------------------
-        # 處理「詳細資料」請求
-        # ---------------------------
-        if postback_data_text == '詳細資料':
-            # 呼叫爬蟲模組取得股票數據
-            df = WebCrawler_MIS_TWSE.webcrawler(postback_data_stock_code)
-            
-            # 回傳轉置後的 DataFrame 方便閱讀
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,  # 使用事件的回覆 Token
-                    messages=[
-                        TextMessage(
-                            text='詳細資料：\n' + str(df.T)  # 轉置 DataFrame 並轉為字串
-                        )
-                    ]                    
-                )
-            )
-        
-        # ---------------------------
-        # 處理「當盤成交價」請求
-        # ---------------------------
-        if postback_data_text == '當盤成交價':
-            df = WebCrawler_MIS_TWSE.webcrawler(postback_data_stock_code)
-            
-            # 提取特定欄位數據
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[
-                        TextMessage(
-                            text='當盤成交價：' + df['當盤成交價'].iloc[0] + '\n'  # 第一筆成交價
-                                 + '當盤成交量：' + df['當盤成交量'].iloc[0]  # 第一筆成交量
-                        )
-                    ]                    
-                )
-            )
-
-        # ---------------------------
-        # 處理「最佳五檔」請求
-        # ---------------------------
-        if postback_data_text == '最佳五檔':
-            df = WebCrawler_MIS_TWSE.webcrawler(postback_data_stock_code)
-            
-            # 篩選五檔相關欄位
-            df = pd.DataFrame(
-                df,
-                columns=[
-                    '五檔賣價(從低到高，以_分隔資料)',
-                    '五檔賣量(從低到高，以_分隔資料)',
-                    '五檔買價(從高到低，以_分隔資料)',
-                    '五檔買量(從高到低，以_分隔資料)'
-                ]
-            )
-
-            # 回傳轉置後的五檔數據
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[
-                        TextMessage(text=str(df.T))  # 轉置後以垂直方式顯示
-                    ]                    
-                )
-            )
+@handler.add(PostbackEvent) # 註冊 Postback 事件處理器
+def postback_event_handler(event):
+    handle_postback(event, configuration)
 
 
 

@@ -1,5 +1,3 @@
-# ===============================資料庫中拿出Ticker等於0015.TW的資料，並把它整理成pandas的格式然後加上欄位
-
 import psycopg2
 import pandas as pd
 import numpy as np
@@ -14,7 +12,7 @@ def fetch_stock_data(ticker):
     """根據股票代碼從 PostgreSQL 資料庫中獲取股票數據。
 
     參數:
-    ticker (str): 股票代碼，例如 '2308.TW'
+    ticker (str): 股票代碼，例如 '2330.TW'
 
     返回:
     pd.DataFrame: 包含股票數據open、high、low、close、volume、price_change_percent、status的 DataFrame
@@ -99,7 +97,7 @@ def prepare_data(df,shuffle=False):
     參數:
     df : DataFrame
         至少包含open、high、low、close、volume、price_change_percent、status的數據。
-    if shuffle : bool
+    shuffle : bool
         為真值的時候觸發隨機洗牌 df
     
 
@@ -151,7 +149,7 @@ def train_model(X_train, y_train, epochs=50, batch_size=32, validation_split=0.2
     batch_size : int
         每次訓練的批次大小，預設為 32。
     validation_split : float
-        要拆分成測試集的比例。
+        要拆分成測試集的比例，預設為 0.25。
     
     返回:
     model : keras.Model
@@ -222,7 +220,7 @@ def fetch_stock_data_today(ticker):
 
     參數:
     ticker (str): 
-        股票代碼，例如 '2308.TW'。
+        股票代碼，例如 '2330.TW'。
 
     返回:
     df : DataFrame
@@ -268,6 +266,8 @@ def prediction(model, X_train, X_test):
     把X_train導入用來得到標準化的轉換標準，然後用X_test做預測，返回預測結果。
 
     參數:
+    model : keras.Model
+        訓練好的模型。    
     X_train : numpy.ndarray
         訓練集特徵數據。
         用來得到標準化的轉換標準。
@@ -333,7 +333,7 @@ def convert_status(status_codes):
 
 
 if __name__ == "__main__":
-    ticker = '2302.TW'  # 輸入的股票代碼
+    ticker = '2330.TW'  # 輸入的股票代碼
 
     # 給股票代號，返回股票資料開高收低量的資料表
     stock_data_df = fetch_stock_data(ticker)
