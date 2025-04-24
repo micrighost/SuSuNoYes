@@ -65,6 +65,12 @@ from linebot.v3.webhooks import (
     PostbackEvent         # 回傳事件
 )
 
+
+
+
+
+
+
 # 建立 Flask 應用程式實例
 app = Flask(__name__)
 
@@ -113,6 +119,14 @@ def get_https_image_url(filename):
     return f"{base_url}static/{filename}"
 
 
+def set_states(fetch=False, chat=False, predict=False, train=False):
+    """集中管理所有狀態設置"""
+    allow_validator.enable_fetch_stock_data(fetch)
+    allow_validator.enable_ai_chat(chat)
+    allow_validator.enable_intelligent_prediction(predict)
+    training_validator.mark_as_ready(train)
+
+
 
 # 監聽所有文字訊息事件
 @handler.add(MessageEvent, message=TextMessageContent)
@@ -135,10 +149,7 @@ def handle_message(event):
             )
             
             # 狀態機設定
-            allow_validator.enable_fetch_stock_data(True)  # 啟用爬蟲模式
-            allow_validator.enable_ai_chat(False)     # 關閉聊天模式
-            allow_validator.enable_intelligent_prediction(False)  # 關閉推薦模式
-            training_validator.mark_as_ready(False)      # 關閉訓練模式
+            set_states(fetch=True)
 
         # 處理「聊天模式」指令    
         elif text in ['2', '我要撩叔叔', '我要聊叔叔']:
@@ -150,10 +161,7 @@ def handle_message(event):
             )
             
             # 狀態機設定
-            allow_validator.enable_ai_chat(True)      # 啟用聊天模式
-            allow_validator.enable_fetch_stock_data(False)  # 關閉爬蟲模式
-            allow_validator.enable_intelligent_prediction(False)  # 關閉推薦模式
-            training_validator.mark_as_ready(False)      # 關閉訓練模式
+            set_states(chat=True)
 
         # 處理「股票推薦」指令
         elif text in ['3', '我要推叔叔']:
@@ -165,10 +173,16 @@ def handle_message(event):
             )
             
             # 狀態機設定
-            allow_validator.enable_intelligent_prediction(True)  # 啟用推薦模式
-            allow_validator.enable_fetch_stock_data(False)       # 關閉爬蟲模式
-            allow_validator.enable_ai_chat(False)           # 關閉聊天模式
-            training_validator.mark_as_ready(False)           # 關閉訓練模式
+            set_states(predict=True)
+
+
+        elif text == 'Deemo':  # 當用戶輸入的訊息是「Deemo」時觸發
+            import Deemo_carousel_template  # 導入自定義的 Deemo_carousel_template 模組
+            Deemo_carousel_template.reply_with_carousel(
+                line_bot_api,       # 傳入 LINE Bot API 實例，用於發送訊息
+                event.reply_token   # 傳入當前事件的回覆令牌，確保訊息回覆給正確用戶
+            )
+
 
 
 #==========================================================
