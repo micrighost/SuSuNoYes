@@ -17,6 +17,7 @@ class AllowValidator:
     def is_allow_intelligent_prediction(self) -> bool:
         """檢查智能預測功能權限"""
         return self.allow_intelligent_prediction
+    
 
     # 新增權限切換方法
     def enable_fetch_stock_data(self, enable: bool):

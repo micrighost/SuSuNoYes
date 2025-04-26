@@ -8,24 +8,31 @@ from linebot.v3.messaging import (
     TextMessage           # 文字訊息物件
 )
 
-
+import get_https_url
 
 # 引入自訂的台灣證交所資料爬蟲模組
 import WebCrawler_MIS_TWSE
 
-def fetch_stock_data_handler(text, line_bot_api, event, allow_validator, get_https_image_url):
+from allow_validator import allow_validator
+
+# 載入個性和腳色
+import ai_character_settings
+adjective=ai_character_settings.AiCharacterSettings.adjective # AI的個性形容詞
+role=ai_character_settings.AiCharacterSettings.role           # AI的角色設定
+
+def fetch_stock_data_handler(text, line_bot_api, event):
     # 驗證股票代號是否有效（檢查是否能取得資料）
     if WebCrawler_MIS_TWSE.webcrawler_true(text):
         
         # ---------------------------
         # 設定快速選單圖示路徑
         # ---------------------------
-        details_icon = get_https_image_url('自以為是的佩佩切出.png')
-        current_transaction_price_icon = get_https_image_url('快樂的佩佩.png')
-        best_five_tick_icon = get_https_image_url('悲傷的佩佩.png')
-        datetime_icon = get_https_image_url('calendar.png')
-        date_icon = get_https_image_url('calendar.png')
-        time_icon = get_https_image_url('time.png')
+        details_icon = get_https_url.get_https_image_url('自以為是的佩佩切出.png')
+        current_transaction_price_icon = get_https_url.get_https_image_url('快樂的佩佩.png')
+        best_five_tick_icon = get_https_url.get_https_image_url('悲傷的佩佩.png')
+        datetime_icon = get_https_url.get_https_image_url('calendar.png')
+        date_icon = get_https_url.get_https_image_url('calendar.png')
+        time_icon = get_https_url.get_https_image_url('time.png')
 
         # ---------------------------
         # 處理有效股票代號（4位數字）
@@ -72,7 +79,7 @@ def fetch_stock_data_handler(text, line_bot_api, event, allow_validator, get_htt
                     reply_token=event.reply_token,
                     messages=[
                         TextMessage(
-                            text='叔叔要給你報，請選擇你要的功能，你不選擇就算了',
+                            text=f'{role}要給你報，請選擇你要的功能，你不選擇就算了',
                             quick_reply=quickReply  # 附加快速選單
                         )
                     ]
@@ -86,11 +93,11 @@ def fetch_stock_data_handler(text, line_bot_api, event, allow_validator, get_htt
     # 處理無效輸入
     # ---------------------------
     # 若股票代號無效且不是指令關鍵字
-    elif not WebCrawler_MIS_TWSE.webcrawler_true(text) and text not in ['1', '0', '叔叔我要報', '叔叔我要抱']:
+    elif not WebCrawler_MIS_TWSE.webcrawler_true(text) and text not in ['', '0']:
         line_bot_api.reply_message(
             ReplyMessageRequest(
                 reply_token=event.reply_token,
-                messages=[TextMessage(text='沒有這股票不要騙叔叔，給我輸入股票代號，或按0退出')]
+                messages=[TextMessage(text=f'沒有這股票不要騙{role}，給我輸入股票代號，或按0退出')]
             )
         )
 

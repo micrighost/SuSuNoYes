@@ -5,13 +5,15 @@ from linebot.v3.messaging import (
     TextMessage           # 文字訊息物件
 )
 
-
+import get_https_url
 
 # 引入智慧預測模組（假設為自訂模組）
 import intelligent_prediction
 
+from allow_validator import allow_validator
+from training_validator import training_validator
 
-def intelligent_prediction_handler(text, line_bot_api, event, allow_validator, training_validator, get_https_image_url):
+def intelligent_prediction_handler(text, line_bot_api, event):
     # 檢查是否已完成數據準備階段
     if training_validator.check_training_ready() == False:
         
@@ -40,7 +42,7 @@ def intelligent_prediction_handler(text, line_bot_api, event, allow_validator, t
                     ReplyMessageRequest(
                         reply_token=event.reply_token,
                         messages=[TextMessage(
-                            text='我抓到資料了，接下來將要訓練模型，請輸入妳想要的訓練次數4-999，訓練時間依訓練次數會有所不同，並且不要覺得會很快'
+                            text='我抓到資料了，接下來將要訓練模型，請輸入妳想要的訓練次數1-999，訓練時間依訓練次數會有所不同，並且不要覺得會很快'
                         )]
                     )
                 )
@@ -59,7 +61,7 @@ def intelligent_prediction_handler(text, line_bot_api, event, allow_validator, t
                 text = ""
 
         # 處理無效輸入
-        elif ((text.isdigit() == False) or len(text) != 4) and text not in ["0", "3", ""]:
+        elif ((text.isdigit() == False) or len(text) != 4) and text not in ["0", ""]:
             print(f"無效輸入: {text}")
             line_bot_api.reply_message(
                 ReplyMessageRequest(
@@ -71,7 +73,7 @@ def intelligent_prediction_handler(text, line_bot_api, event, allow_validator, t
             )
 
     # 數據準備完成後的模型訓練階段
-    if training_validator.check_training_ready():
+    if training_validator.check_training_ready() and text not in ['', '0']:
         
         # 驗證訓練次數輸入 (1-3位數)
         if text.isdigit() and (len(text) < 4):
@@ -103,7 +105,7 @@ def intelligent_prediction_handler(text, line_bot_api, event, allow_validator, t
             status_descriptions = intelligent_prediction.convert_status(predictions)
             
             # 生成模型準確率圖表連結
-            details_icon = get_https_image_url('model_accuracy.png')
+            details_icon = get_https_url.get_https_image_url('model_accuracy.png')
             
             # 發送預測結果與圖表
             line_bot_api.reply_message(
@@ -121,12 +123,12 @@ def intelligent_prediction_handler(text, line_bot_api, event, allow_validator, t
 
 
         # 處理訓練階段的無效輸入
-        elif text != "":
+        else:
             line_bot_api.reply_message(
                 ReplyMessageRequest(
                     reply_token=event.reply_token,
                     messages=[TextMessage(
-                        text='現在是要訓練模型，請輸入妳想要的訓練次數4-999'
+                        text='現在是要訓練模型，請輸入你想要的訓練次數1-999'
                     )]
                 )
             )
@@ -136,4 +138,4 @@ def intelligent_prediction_handler(text, line_bot_api, event, allow_validator, t
         # 關閉智能預測模式
         allow_validator.enable_intelligent_prediction(False)
         # 重置訓練狀態
-        training_validator.check_training_ready(False)
+        training_validator.mark_as_ready(False)

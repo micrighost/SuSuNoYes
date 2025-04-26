@@ -1,14 +1,3 @@
-# 引入自訂的台灣證交所資料爬蟲模組
-import WebCrawler_MIS_TWSE
-
-# 引入 Google AI 相關模組（假設為自訂模組）
-import google_ai
-
-# 引入智慧預測模組（假設為自訂模組）
-import intelligent_prediction
-
-# 引入 pandas 做資料處理
-import pandas as pd
 
 # 引入 os 處理環境變數
 import os
@@ -67,10 +56,6 @@ from linebot.v3.webhooks import (
 
 
 
-
-
-
-
 # 建立 Flask 應用程式實例
 app = Flask(__name__)
 
@@ -105,13 +90,10 @@ def callback():
     return 'OK'
 
 
-
-def get_https_image_url(filename):
-    """生成 HTTPS 圖片 URL"""
-    # 獲取當前服務器根 URL 並拼接圖片路徑
-    # 強制轉換為 HTTPS（LINE 要求圖片必須使用 HTTPS）
-    base_url = request.url_root.replace("http://", "https://")
-    return f"{base_url}static/{filename}"
+# 載入個性和腳色
+import ai_character_settings
+adjective=ai_character_settings.AiCharacterSettings.adjective # AI的個性形容詞
+role=ai_character_settings.AiCharacterSettings.role           # AI的角色設定
 
 
 
@@ -120,12 +102,19 @@ from training_validator import training_validator
 
 def set_states(fetch=False, chat=False, predict=False, train=False):
     """集中管理所有狀態設置"""
+
     allow_validator.enable_fetch_stock_data(fetch)
     allow_validator.enable_ai_chat(chat)
     allow_validator.enable_intelligent_prediction(predict)
     training_validator.mark_as_ready(train)
 
-
+def is_any_state_active():
+    """檢查是否有任一主要狀態激活"""
+    return any([
+        allow_validator.is_allow_fetch_stock_data(),
+        allow_validator.is_allow_ai_chat(),
+        allow_validator.is_allow_intelligent_prediction()
+    ])
 
 # 監聽所有文字訊息事件
 @handler.add(MessageEvent, message=TextMessageContent)
@@ -137,55 +126,63 @@ def handle_message(event):
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
 
-        # 處理「股票查詢」指令
-        if text in ['1', '叔叔我要報', '叔叔我要抱']:
-            # 回覆操作指引
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[TextMessage(text='叔叔要給你報，請輸入股票代號，或按0退出')]
-                )
-            )
-            
-            # 狀態機設定
-            set_states(fetch=True)
-
-        # 處理「聊天模式」指令    
-        elif text in ['2', '我要撩叔叔', '我要聊叔叔']:
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[TextMessage(text='叔叔跟你聊，請輸入你要的聊的，或按0退出')]
-                )
-            )
-            
-            # 狀態機設定
-            set_states(chat=True)
-
-        # 處理「股票推薦」指令
-        elif text in ['3', '我要推叔叔']:
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[TextMessage(text='叔叔給你推，請輸入你要詢問的股票代號，或按0退出')]
-                )
-            )
-            
-            # 狀態機設定
-            set_states(predict=True)
-
-
-        elif text == 'Deemo':  # 當用戶輸入的訊息是「Deemo」時觸發
+        if text == 'Deemo':  # 當用戶輸入的訊息是「Deemo」時觸發
             import Deemo_carousel_template  # 導入自定義的 Deemo_carousel_template 模組
             Deemo_carousel_template.reply_with_deemo_carousel(
                 line_bot_api,       # 傳入 LINE Bot API 實例，用於發送訊息
                 event.reply_token,   # 傳入當前事件的回覆令牌，確保訊息回覆給正確用戶
-                get_https_image_url
             )
+            text = ""
+
+
+        if is_any_state_active() == False:
+            # 處理「股票查詢」指令
+            if text in ['1', '叔叔我要報', '叔叔我要抱']:
+                # 回覆操作指引
+                line_bot_api.reply_message(
+                    ReplyMessageRequest(
+                        reply_token=event.reply_token,
+                        messages=[TextMessage(text=f'{role}要給你報，請輸入股票代號，或按0退出')]
+                    )
+                )
+                text = ""
+                
+                # 狀態機設定
+                set_states(fetch=True)
+
+            # 處理「聊天模式」指令    
+            elif text in ['2', '我要撩叔叔', '我要聊叔叔']:
+                line_bot_api.reply_message(
+                    ReplyMessageRequest(
+                        reply_token=event.reply_token,
+                        messages=[TextMessage(text=f'{role}跟你聊，請輸入你要的聊的，或按0退出')]
+                    )
+                )
+                text = ""
+
+                # 狀態機設定
+                set_states(chat=True)
+
+            # 處理「股票分析」指令
+            elif text in ['3', '叔叔我要分析']:
+                line_bot_api.reply_message(
+                    ReplyMessageRequest(
+                        reply_token=event.reply_token,
+                        messages=[TextMessage(text=f'{role}給你分析，請輸入你要詢問的股票代號，或按0退出')]
+                    )
+                )
+                text = ""
+
+                # 狀態機設定
+                set_states(predict=True)
+
+
+
 
 
 
 #==========================================================
+
         # 檢查是否處於爬蟲模式（允許查詢股票資料的狀態）
         if allow_validator.is_allow_fetch_stock_data():
 
@@ -193,25 +190,20 @@ def handle_message(event):
             fetch_stock_data_handler.fetch_stock_data_handler(
                 text=text,
                 line_bot_api=line_bot_api,
-                event=event,
-                allow_validator=allow_validator,
-                get_https_image_url=get_https_image_url
+                event=event
             )
             
-
-
         # 如果訪問叔叔AI（聊天模式）已經開啟則進入循環
         if allow_validator.is_allow_ai_chat():
             import ai_chat_handler
-            ai_chat_handler.ai_chat_handler(
+            # google_ai_chat_handler >> 用google的AI
+            # local_ai_chat_handler >> 用本地的AI
+            # rag_ai_chat_handler >> 智能聊天與網路檢索（RAG）整合主流程，但是api消耗較大，可以換成本地AI
+            ai_chat_handler.rag_ai_chat_handler(  # 可替換為其他的處理方式(handler)
                 text=text,
                 line_bot_api=line_bot_api,
-                event=event,
-                allow_validator=allow_validator
+                event=event
             )
-
-
-
 
 
         # 如果「智能預測模式」已開啟
@@ -220,149 +212,17 @@ def handle_message(event):
             intelligent_prediction_handler.intelligent_prediction_handler(
                 text=text,
                 line_bot_api=line_bot_api,
-                event=event,
-                allow_validator=allow_validator,
-                training_validator=training_validator,
-                get_https_image_url=get_https_image_url
+                event=event
             )
             
-            # # 檢查是否已完成數據準備階段
-            # if training_validator.check_training_ready() == False:
-                
-            #     # 驗證輸入是否為4位數股票代號
-            #     if text.isdigit() and len(text) == 4:
-                    
-            #         # 格式化成台灣股票代號格式 (如 2330.TW)
-            #         training_validator.ticker = text + '.TW'
-                    
-            #         # 抓取歷史股價數據
-            #         df = intelligent_prediction.fetch_stock_data(training_validator.ticker)
-                    
-            #         if df.empty:
-            #             # 數據抓取失敗回應
-            #             line_bot_api.reply_message(
-            #                 ReplyMessageRequest(
-            #                     reply_token=event.reply_token,
-            #                     messages=[TextMessage(
-            #                         text='沒抓到資料：換檔股票或是輸入的股票代號不正確，請輸入4個數字'
-            #                     )]
-            #                 )
-            #             )
-            #         else:
-            #             # 數據抓取成功回應
-            #             line_bot_api.reply_message(
-            #                 ReplyMessageRequest(
-            #                     reply_token=event.reply_token,
-            #                     messages=[TextMessage(
-            #                         text='我抓到資料了，接下來將要訓練模型，請輸入妳想要的訓練次數4-999，訓練時間依訓練次數會有所不同，並且不要覺得會很快'
-            #                     )]
-            #                 )
-            #             )
-                        
-            #             # 準備訓練數據 (不洗牌以保留時間序列特性)
-            #             X_train, y_train = intelligent_prediction.prepare_data(df, shuffle=False)
-                        
-            #             # 標記數據準備完成
-            #             training_validator.mark_as_ready(True)
-                        
-            #             # 儲存訓練數據到全局變數
-            #             training_validator.X_train = X_train
-            #             training_validator.y_train = y_train
-                        
-            #             # 清空輸入內容避免干擾後續流程
-            #             text = ""
 
-            #     # 處理無效輸入
-            #     elif ((text.isdigit() == False) or len(text) != 4) and text not in ["0", "3", ""]:
-            #         print(f"無效輸入: {text}")
-            #         line_bot_api.reply_message(
-            #             ReplyMessageRequest(
-            #                 reply_token=event.reply_token,
-            #                 messages=[TextMessage(
-            #                     text='現在是要查詢資料庫裡是否有資料可以幫你分析，請輸入妳想要分析的股票代號'
-            #                 )]
-            #             )
-            #         )
-
-            # # 數據準備完成後的模型訓練階段
-            # if training_validator.check_training_ready():
-                
-            #     # 驗證訓練次數輸入 (1-3位數)
-            #     if text.isdigit() and (len(text) < 4):
-                    
-            #         # 模型訓練參數設定
-            #         epochs = int(text)
-            #         batch_size = 5
-            #         validation_split = 0.25
-                    
-            #         # 啟動模型訓練
-            #         model = intelligent_prediction.train_model(
-            #             training_validator.X_train,
-            #             training_validator.y_train,
-            #             epochs=epochs,
-            #             batch_size=batch_size,
-            #             validation_split=validation_split
-            #         )
-                    
-            #         # 獲取最新股價數據
-            #         stock_data_today_df = intelligent_prediction.fetch_stock_data_today(training_validator.ticker)
-                    
-            #         # 提取特徵數據
-            #         X_test = stock_data_today_df[['open', 'high', 'low', 'close', 'volume']]
-                    
-            #         # 執行預測
-            #         predictions = intelligent_prediction.prediction(model, training_validator.X_train, X_test)
-                    
-            #         # 轉換預測結果為文字描述
-            #         status_descriptions = intelligent_prediction.convert_status(predictions)
-                    
-            #         # 生成模型準確率圖表連結
-            #         details_icon = get_https_image_url('model_accuracy.png')
-                    
-            #         # 發送預測結果與圖表
-            #         line_bot_api.reply_message(
-            #             ReplyMessageRequest(
-            #                 reply_token=event.reply_token,
-            #                 messages=[
-            #                     TextMessage(text='訓練完成，明日預測結果為:' + "\n" + status_descriptions + "\n" '以下是模型的訓練圖:'),
-            #                     ImageMessage(original_content_url=details_icon, preview_image_url=details_icon)
-            #                 ]
-            #             )
-            #         )
-                    
-            #         # 重置訓練狀態
-            #         training_validator.mark_as_ready(False)
-
-
-            #     # 處理訓練階段的無效輸入
-            #     elif text != "":
-            #         line_bot_api.reply_message(
-            #             ReplyMessageRequest(
-            #                 reply_token=event.reply_token,
-            #                 messages=[TextMessage(
-            #                     text='現在是要訓練模型，請輸入妳想要的訓練次數4-999'
-            #                 )]
-            #             )
-            #         )
-
-            # # 處理退出指令
-            # if text == '0':
-            #     # 關閉智能預測模式
-            #     allow_validator.enable_intelligent_prediction(False)
-            #     # 重置訓練狀態
-            #     training_validator.check_training_ready(False)
-           
             
-
-
 from postback_handler import handle_postback
 
 # 處理 LINE 的 PostbackEvent (快速選單回傳事件)
 @handler.add(PostbackEvent) # 註冊 Postback 事件處理器
 def postback_event_handler(event):
     handle_postback(event, configuration)
-
-
 
 
             
