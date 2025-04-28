@@ -234,7 +234,7 @@ def handle_message(event):
                 # ANN_3DayKbar_output2_intelligent_prediction_function >> 輸入3天k棒，2輸出  
                 #   
                 # 可替換為其他的方法(function)        
-                intelligent_prediction_handler.ANN_3DayKbar_output5_intelligent_prediction_function( 
+                intelligent_prediction_handler.ANN_OHLCV_output5_intelligent_prediction_function( 
                     text=text,
                     line_bot_api=line_bot_api,
                     event=event
