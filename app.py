@@ -125,7 +125,12 @@ def handle_message(event):
     text = event.message.text
 
     if not conversation_validator.is_allow_conversation():
-        print("太頻繁被訪問摟!!")
+        
+        print("被太頻繁被訪問，或是有斷線狀況發生摟!!")
+        import time
+        time.sleep(60)
+        conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+
    
     # 如果目前沒有訊息未處理完，那就可以接受新訊息
     if conversation_validator.is_allow_conversation():
