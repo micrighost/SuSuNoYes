@@ -10,6 +10,8 @@ import pandas as pd  # 數據處理套件
 # 引入自訂的台灣證交所資料爬蟲模組
 import WebCrawler_MIS_TWSE
 
+from conversation_validator import conversation_validator
+
 def handle_postback(event, configuration):
     """
     處理 LINE 的 Postback 事件入口函數
@@ -49,6 +51,7 @@ def handle_postback(event, configuration):
                     ]                    
                 )
             )
+            conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
         
         # ---------------------------
         # 處理「當盤成交價」請求
@@ -72,6 +75,7 @@ def handle_postback(event, configuration):
                     ]                    
                 )
             )
+            conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
 
         # ---------------------------
         # 處理「最佳五檔」請求
@@ -103,3 +107,4 @@ def handle_postback(event, configuration):
                     ]                    
                 )
             )
+            conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話

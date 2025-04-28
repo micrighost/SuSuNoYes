@@ -14,6 +14,8 @@ import get_https_url
 import WebCrawler_MIS_TWSE
 
 from allow_validator import allow_validator
+from conversation_validator import conversation_validator
+
 
 # 載入個性和腳色
 import ai_character_settings
@@ -85,7 +87,8 @@ def fetch_stock_data_handler(text, line_bot_api, event):
                     ]
                 )
             )
-            
+            conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+
             # 關閉爬蟲模式（避免重複觸發）
             allow_validator.enable_fetch_stock_data(False)
 
@@ -100,6 +103,7 @@ def fetch_stock_data_handler(text, line_bot_api, event):
                 messages=[TextMessage(text=f'沒有這股票不要騙{role}，給我輸入股票代號，或按0退出')]
             )
         )
+        conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
 
     # ---------------------------
     # 處理退出指令
@@ -107,3 +111,5 @@ def fetch_stock_data_handler(text, line_bot_api, event):
     if text == '0':
         # 關閉爬蟲模式
         allow_validator.enable_fetch_stock_data(False)
+        
+        conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話

@@ -7,6 +7,7 @@ from linebot.v3.messaging import (
 )
 
 import get_https_url
+from conversation_validator import conversation_validator
 
 def reply_with_deemo_carousel(line_bot_api, reply_token):
     """
@@ -64,3 +65,4 @@ def reply_with_deemo_carousel(line_bot_api, reply_token):
             messages =[carousel_message]
         )
     )
+    conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話

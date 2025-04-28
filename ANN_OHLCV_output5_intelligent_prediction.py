@@ -176,7 +176,7 @@ def train_model(X_train, y_train, epochs=50, batch_size=32, validation_split=0.2
     # 用relu來收斂
     model.add(layers.Dense(32, activation='relu'))
 
-    # 輸出1個神經元
+    # 輸出5個神經元
     model.add(layers.Dense(5, activation='softmax'))# 5 個輸出對應於 4 個狀態(1.2.3.4)加一個沒有狀態(0)
 
     # 查看模型結構

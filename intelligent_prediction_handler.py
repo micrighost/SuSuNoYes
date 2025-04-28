@@ -5,15 +5,19 @@ from linebot.v3.messaging import (
     TextMessage           # 文字訊息物件
 )
 
-import get_https_url
-
-# 引入智慧預測模組（假設為自訂模組）
-import intelligent_prediction
 
 from allow_validator import allow_validator
 from training_validator import training_validator
+from conversation_validator import conversation_validator
 
-def intelligent_prediction_handler(text, line_bot_api, event):
+
+# 引入生成圖片路徑模組
+import get_https_url
+
+# 引入智慧預測模組（假設為自訂模組）
+import ANN_OHLCV_output5_intelligent_prediction
+
+def ANN_OHLCV_output5_intelligent_prediction_function(text, line_bot_api, event):
     # 檢查是否已完成數據準備階段
     if training_validator.check_training_ready() == False:
         
@@ -24,7 +28,7 @@ def intelligent_prediction_handler(text, line_bot_api, event):
             training_validator.ticker = text + '.TW'
             
             # 抓取歷史股價數據
-            df = intelligent_prediction.fetch_stock_data(training_validator.ticker)
+            df = ANN_OHLCV_output5_intelligent_prediction.fetch_stock_data(training_validator.ticker)
             
             if df.empty:
                 # 數據抓取失敗回應
@@ -36,6 +40,8 @@ def intelligent_prediction_handler(text, line_bot_api, event):
                         )]
                     )
                 )
+                conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+
             else:
                 # 數據抓取成功回應
                 line_bot_api.reply_message(
@@ -46,9 +52,10 @@ def intelligent_prediction_handler(text, line_bot_api, event):
                         )]
                     )
                 )
+                conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
                 
                 # 準備訓練數據 (不洗牌以保留時間序列特性)
-                X_train, y_train = intelligent_prediction.prepare_data(df, shuffle=False)
+                X_train, y_train = ANN_OHLCV_output5_intelligent_prediction.prepare_data(df, shuffle=False)
                 
                 # 標記數據準備完成
                 training_validator.mark_as_ready(True)
@@ -71,6 +78,7 @@ def intelligent_prediction_handler(text, line_bot_api, event):
                     )]
                 )
             )
+            conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
 
     # 數據準備完成後的模型訓練階段
     if training_validator.check_training_ready() and text not in ['', '0']:
@@ -84,7 +92,7 @@ def intelligent_prediction_handler(text, line_bot_api, event):
             validation_split = 0.25
             
             # 啟動模型訓練
-            model = intelligent_prediction.train_model(
+            model = ANN_OHLCV_output5_intelligent_prediction.train_model(
                 training_validator.X_train,
                 training_validator.y_train,
                 epochs=epochs,
@@ -93,16 +101,16 @@ def intelligent_prediction_handler(text, line_bot_api, event):
             )
             
             # 獲取最新股價數據
-            stock_data_today_df = intelligent_prediction.fetch_stock_data_today(training_validator.ticker)
+            stock_data_today_df = ANN_OHLCV_output5_intelligent_prediction.fetch_stock_data_today(training_validator.ticker)
             
             # 提取特徵數據
             X_test = stock_data_today_df[['open', 'high', 'low', 'close', 'volume']]
             
             # 執行預測
-            predictions = intelligent_prediction.prediction(model, training_validator.X_train, X_test)
+            predictions = ANN_OHLCV_output5_intelligent_prediction.prediction(model, training_validator.X_train, X_test)
             
             # 轉換預測結果為文字描述
-            status_descriptions = intelligent_prediction.convert_status(predictions)
+            status_descriptions = ANN_OHLCV_output5_intelligent_prediction.convert_status(predictions)
             
             # 生成模型準確率圖表連結
             details_icon = get_https_url.get_https_image_url('model_accuracy.png')
@@ -117,6 +125,7 @@ def intelligent_prediction_handler(text, line_bot_api, event):
                     ]
                 )
             )
+            conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
             
             # 重置訓練狀態
             training_validator.mark_as_ready(False)
@@ -132,6 +141,7 @@ def intelligent_prediction_handler(text, line_bot_api, event):
                     )]
                 )
             )
+            conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
 
     # 處理退出指令
     if text == '0':
@@ -139,3 +149,436 @@ def intelligent_prediction_handler(text, line_bot_api, event):
         allow_validator.enable_intelligent_prediction(False)
         # 重置訓練狀態
         training_validator.mark_as_ready(False)
+
+        conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+
+
+
+
+# 引入智慧預測模組（假設為自訂模組）
+import ANN_OHLCV_output2_intelligent_prediction
+
+def ANN_OHLCV_output2_intelligent_prediction_function(text, line_bot_api, event):
+    # 檢查是否已完成數據準備階段
+    if training_validator.check_training_ready() == False:
+        
+        # 驗證輸入是否為4位數股票代號
+        if text.isdigit() and len(text) == 4:
+            
+            # 格式化成台灣股票代號格式 (如 2330.TW)
+            training_validator.ticker = text + '.TW'
+            
+            # 抓取歷史股價數據
+            df = ANN_OHLCV_output2_intelligent_prediction.fetch_stock_data(training_validator.ticker)
+            
+            if df.empty:
+                # 數據抓取失敗回應
+                line_bot_api.reply_message(
+                    ReplyMessageRequest(
+                        reply_token=event.reply_token,
+                        messages=[TextMessage(
+                            text='沒抓到資料：換檔股票或是輸入的股票代號不正確，請輸入4個數字'
+                        )]
+                    )
+                )
+                conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+
+            else:
+                # 數據抓取成功回應
+                line_bot_api.reply_message(
+                    ReplyMessageRequest(
+                        reply_token=event.reply_token,
+                        messages=[TextMessage(
+                            text='我抓到資料了，接下來將要訓練模型，請輸入妳想要的訓練次數1-999，訓練時間依訓練次數會有所不同，並且不要覺得會很快'
+                        )]
+                    )
+                )
+                conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+                
+                # 準備訓練數據 (不洗牌以保留時間序列特性)
+                X_train, y_train = ANN_OHLCV_output2_intelligent_prediction.prepare_data(df, shuffle=False)
+                
+                # 標記數據準備完成
+                training_validator.mark_as_ready(True)
+                
+                # 儲存訓練數據到全局變數
+                training_validator.X_train = X_train
+                training_validator.y_train = y_train
+                
+                # 清空輸入內容避免干擾後續流程
+                text = ""
+
+        # 處理無效輸入
+        elif ((text.isdigit() == False) or len(text) != 4) and text not in ["0", ""]:
+            print(f"無效輸入: {text}")
+            line_bot_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[TextMessage(
+                        text='現在是要查詢資料庫裡是否有資料可以幫你分析，請輸入妳想要分析的股票代號'
+                    )]
+                )
+            )
+            conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+
+    # 數據準備完成後的模型訓練階段
+    if training_validator.check_training_ready() and text not in ['', '0']:
+        
+        # 驗證訓練次數輸入 (1-3位數)
+        if text.isdigit() and (len(text) < 4):
+            
+            # 模型訓練參數設定
+            epochs = int(text)
+            batch_size = 5
+            validation_split = 0.25
+            
+            # 啟動模型訓練
+            model = ANN_OHLCV_output2_intelligent_prediction.train_model(
+                training_validator.X_train,
+                training_validator.y_train,
+                epochs=epochs,
+                batch_size=batch_size,
+                validation_split=validation_split
+            )
+            
+            # 獲取最新股價數據
+            stock_data_today_df = ANN_OHLCV_output2_intelligent_prediction.fetch_stock_data_today(training_validator.ticker)
+            
+            # 提取特徵數據
+            X_test = stock_data_today_df[['open', 'high', 'low', 'close', 'volume']]
+            
+            # 執行預測
+            predictions = ANN_OHLCV_output2_intelligent_prediction.prediction(model, training_validator.X_train, X_test)
+            
+            # 轉換預測結果為文字描述
+            status_descriptions = ANN_OHLCV_output2_intelligent_prediction.convert_status(predictions)
+            
+            # 生成模型準確率圖表連結
+            details_icon = get_https_url.get_https_image_url('model_accuracy.png')
+            
+            # 發送預測結果與圖表
+            line_bot_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[
+                        TextMessage(text='訓練完成，明日預測結果為:' + "\n" + status_descriptions + "\n" '以下是模型的訓練圖:'),
+                        ImageMessage(original_content_url=details_icon, preview_image_url=details_icon)
+                    ]
+                )
+            )
+            conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+            
+            # 重置訓練狀態
+            training_validator.mark_as_ready(False)
+
+
+        # 處理訓練階段的無效輸入
+        else:
+            line_bot_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[TextMessage(
+                        text='現在是要訓練模型，請輸入你想要的訓練次數1-999'
+                    )]
+                )
+            )
+            conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+
+    # 處理退出指令
+    if text == '0':
+        # 關閉智能預測模式
+        allow_validator.enable_intelligent_prediction(False)
+        # 重置訓練狀態
+        training_validator.mark_as_ready(False)
+
+        conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+
+
+
+
+# 引入智慧預測模組（假設為自訂模組）
+import ANN_3DayKbar_output5_intelligent_prediction
+
+def ANN_3DayKbar_output5_intelligent_prediction_function(text, line_bot_api, event):
+    # 檢查是否已完成數據準備階段
+    if training_validator.check_training_ready() == False:
+        
+        # 驗證輸入是否為4位數股票代號
+        if text.isdigit() and len(text) == 4:
+            
+            # 格式化成台灣股票代號格式 (如 2330.TW)
+            training_validator.ticker = text + '.TW'
+            
+            # 抓取歷史股價數據
+            df = ANN_3DayKbar_output5_intelligent_prediction.fetch_stock_data(training_validator.ticker)
+            
+            if df.empty:
+                # 數據抓取失敗回應
+                line_bot_api.reply_message(
+                    ReplyMessageRequest(
+                        reply_token=event.reply_token,
+                        messages=[TextMessage(
+                            text='沒抓到資料：換檔股票或是輸入的股票代號不正確，請輸入4個數字'
+                        )]
+                    )
+                )
+                conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+                
+            else:
+                # 數據抓取成功回應
+                line_bot_api.reply_message(
+                    ReplyMessageRequest(
+                        reply_token=event.reply_token,
+                        messages=[TextMessage(
+                            text='我抓到資料了，接下來將要訓練模型，請輸入妳想要的訓練次數1-999，訓練時間依訓練次數會有所不同，並且不要覺得會很快'
+                        )]
+                    )
+                )
+                conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+                
+                # 準備訓練數據 (不洗牌以保留時間序列特性)
+                X_train, y_train = ANN_3DayKbar_output5_intelligent_prediction.prepare_data(df, shuffle=False)
+                
+                # 標記數據準備完成
+                training_validator.mark_as_ready(True)
+                
+                # 儲存訓練數據到全局變數
+                training_validator.X_train = X_train
+                training_validator.y_train = y_train
+                
+                # 清空輸入內容避免干擾後續流程
+                text = ""
+
+        # 處理無效輸入
+        elif ((text.isdigit() == False) or len(text) != 4) and text not in ["0", ""]:
+            print(f"無效輸入: {text}")
+            line_bot_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[TextMessage(
+                        text='現在是要查詢資料庫裡是否有資料可以幫你分析，請輸入妳想要分析的股票代號'
+                    )]
+                )
+            )
+            conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+
+    # 數據準備完成後的模型訓練階段
+    if training_validator.check_training_ready() and text not in ['', '0']:
+        
+        # 驗證訓練次數輸入 (1-3位數)
+        if text.isdigit() and (len(text) < 4):
+            
+            # 模型訓練參數設定
+            epochs = int(text)
+            batch_size = 5
+            validation_split = 0.25
+            
+            # 啟動模型訓練
+            model = ANN_3DayKbar_output5_intelligent_prediction.train_model(
+                training_validator.X_train,
+                training_validator.y_train,
+                epochs=epochs,
+                batch_size=batch_size,
+                validation_split=validation_split
+            )
+            
+            # 獲取最新股價數據
+            stock_data_today_df = ANN_3DayKbar_output5_intelligent_prediction.fetch_stock_data_today(training_validator.ticker)
+            
+            # 提取特徵數據
+            X_test = stock_data_today_df[['volume', 'k-2_status', 'k-1_status', 'k_status']]
+    
+            # 執行預測
+            predictions = ANN_3DayKbar_output5_intelligent_prediction.prediction(model, training_validator.X_train, X_test)
+            
+            # 轉換預測結果為文字描述
+            status_descriptions = ANN_3DayKbar_output5_intelligent_prediction.convert_status(predictions)
+            
+            # 生成模型準確率圖表連結
+            details_icon = get_https_url.get_https_image_url('model_accuracy.png')
+            
+            # 發送預測結果與圖表
+            line_bot_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[
+                        TextMessage(text='訓練完成，明日預測結果為:' + "\n" + status_descriptions + "\n" '以下是模型的訓練圖:'),
+                        ImageMessage(original_content_url=details_icon, preview_image_url=details_icon)
+                    ]
+                )
+            )
+            conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+            
+            # 重置訓練狀態
+            training_validator.mark_as_ready(False)
+
+
+        # 處理訓練階段的無效輸入
+        else:
+            line_bot_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[TextMessage(
+                        text='現在是要訓練模型，請輸入你想要的訓練次數1-999'
+                    )]
+                )
+            )
+            conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+
+    # 處理退出指令
+    if text == '0':
+        # 關閉智能預測模式
+        allow_validator.enable_intelligent_prediction(False)
+        # 重置訓練狀態
+        training_validator.mark_as_ready(False)
+
+        conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+
+
+
+
+
+# 引入智慧預測模組（假設為自訂模組）
+import ANN_3DayKbar_output2_intelligent_prediction
+
+def ANN_3DayKbar_output2_intelligent_prediction_function(text, line_bot_api, event):
+    # 檢查是否已完成數據準備階段
+    if training_validator.check_training_ready() == False:
+        
+        # 驗證輸入是否為4位數股票代號
+        if text.isdigit() and len(text) == 4:
+            
+            # 格式化成台灣股票代號格式 (如 2330.TW)
+            training_validator.ticker = text + '.TW'
+            
+            # 抓取歷史股價數據
+            df = ANN_3DayKbar_output2_intelligent_prediction.fetch_stock_data(training_validator.ticker)
+            
+            if df.empty:
+                # 數據抓取失敗回應
+                line_bot_api.reply_message(
+                    ReplyMessageRequest(
+                        reply_token=event.reply_token,
+                        messages=[TextMessage(
+                            text='沒抓到資料：換檔股票或是輸入的股票代號不正確，請輸入4個數字'
+                        )]
+                    )
+                )
+                conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+
+            else:
+                # 數據抓取成功回應
+                line_bot_api.reply_message(
+                    ReplyMessageRequest(
+                        reply_token=event.reply_token,
+                        messages=[TextMessage(
+                            text='我抓到資料了，接下來將要訓練模型，請輸入妳想要的訓練次數1-999，訓練時間依訓練次數會有所不同，並且不要覺得會很快'
+                        )]
+                    )
+                )
+                conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+                
+                # 準備訓練數據 (不洗牌以保留時間序列特性)
+                X_train, y_train = ANN_3DayKbar_output2_intelligent_prediction.prepare_data(df, shuffle=False)
+                
+                # 標記數據準備完成
+                training_validator.mark_as_ready(True)
+                
+                # 儲存訓練數據到全局變數
+                training_validator.X_train = X_train
+                training_validator.y_train = y_train
+                
+                # 清空輸入內容避免干擾後續流程
+                text = ""
+
+        # 處理無效輸入
+        elif ((text.isdigit() == False) or len(text) != 4) and text not in ["0", ""]:
+            print(f"無效輸入: {text}")
+            line_bot_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[TextMessage(
+                        text='現在是要查詢資料庫裡是否有資料可以幫你分析，請輸入妳想要分析的股票代號'
+                    )]
+                )
+            )
+            conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+
+    # 數據準備完成後的模型訓練階段
+    if training_validator.check_training_ready() and text not in ['', '0']:
+        
+        # 驗證訓練次數輸入 (1-3位數)
+        if text.isdigit() and (len(text) < 4):
+            
+            # 模型訓練參數設定
+            epochs = int(text)
+            batch_size = 5
+            validation_split = 0.25
+            
+            # 啟動模型訓練
+            model = ANN_3DayKbar_output2_intelligent_prediction.train_model(
+                training_validator.X_train,
+                training_validator.y_train,
+                epochs=epochs,
+                batch_size=batch_size,
+                validation_split=validation_split
+            )
+            
+            # 獲取最新股價數據
+            stock_data_today_df = ANN_3DayKbar_output2_intelligent_prediction.fetch_stock_data_today(training_validator.ticker)
+            
+            # 提取特徵數據
+            X_test = stock_data_today_df[['volume', 'k-2_status', 'k-1_status', 'k_status']]
+    
+            # 執行預測
+            predictions = ANN_3DayKbar_output2_intelligent_prediction.prediction(model, training_validator.X_train, X_test)
+            
+            # 轉換預測結果為文字描述
+            status_descriptions = ANN_3DayKbar_output2_intelligent_prediction.convert_status(predictions)
+            
+            # 生成模型準確率圖表連結
+            details_icon = get_https_url.get_https_image_url('model_accuracy.png')
+            
+            # 發送預測結果與圖表
+            line_bot_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[
+                        TextMessage(text='訓練完成，明日預測結果為:' + "\n" + status_descriptions + "\n" '以下是模型的訓練圖:'),
+                        ImageMessage(original_content_url=details_icon, preview_image_url=details_icon)
+                    ]
+                )
+            )
+            conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+            
+            # 重置訓練狀態
+            training_validator.mark_as_ready(False)
+
+
+        # 處理訓練階段的無效輸入
+        else:
+            line_bot_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[TextMessage(
+                        text='現在是要訓練模型，請輸入你想要的訓練次數1-999'
+                    )]
+                )
+            )
+            conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+
+    # 處理退出指令
+    if text == '0':
+        # 關閉智能預測模式
+        allow_validator.enable_intelligent_prediction(False)
+        # 重置訓練狀態
+        training_validator.mark_as_ready(False)
+
+        conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+
+
+
+
+
+
+

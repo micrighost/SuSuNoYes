@@ -34,3 +34,5 @@ class AllowValidator:
 
 # 實例化權限控制器
 allow_validator = AllowValidator()
+
+

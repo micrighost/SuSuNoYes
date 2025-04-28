@@ -4,6 +4,8 @@ from linebot.v3.messaging import (
 )
 
 from allow_validator import allow_validator
+from conversation_validator import conversation_validator
+
 
 
 # 載入個性和腳色
@@ -14,7 +16,7 @@ role=ai_character_settings.AiCharacterSettings.role           # AI的角色設�
 # 引入 Google AI 相關模組（假設為自訂模組）
 import google_ai
 
-def google_ai_chat_handler(text, line_bot_api, event):
+def google_ai_chat_function(text, line_bot_api, event):
 # 過濾掉進入聊天模式的指令本身與退出指令
     if text not in ['', '0']:
         # 如果使用者輸入'r'，讓AI「失憶」（重置對話）
@@ -31,6 +33,7 @@ def google_ai_chat_handler(text, line_bot_api, event):
                     )]
                 )
             )
+            conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
 
         # 處理一般聊天輸入
         if text != 'r':
@@ -46,17 +49,19 @@ def google_ai_chat_handler(text, line_bot_api, event):
                     )]
                 )
             )
+            conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
 
     # 如果使用者輸入0，關閉訪問叔叔AI（退出聊天模式）
     if text == '0':
         allow_validator.enable_ai_chat(False)
+        conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
 
 
 
 # 引入 Local AI 相關模組（假設為自訂模組）
 import local_ai
 
-def local_ai_chat_handler(text, line_bot_api, event):
+def local_ai_chat_function(text, line_bot_api, event):
 # 過濾掉進入聊天模式的指令本身與退出指令
     if text not in ['', '0']:
         # 如果使用者輸入'r'，讓AI「失憶」（重置對話）
@@ -73,6 +78,7 @@ def local_ai_chat_handler(text, line_bot_api, event):
                     )]
                 )
             )
+            conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
 
         # 處理一般聊天輸入
         if text != 'r':
@@ -88,10 +94,12 @@ def local_ai_chat_handler(text, line_bot_api, event):
                     )]
                 )
             )
+            conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
 
     # 如果使用者輸入0，關閉訪問叔叔AI（退出聊天模式）
     if text == '0':
         allow_validator.enable_ai_chat(False)
+        conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
 
 
 
@@ -99,7 +107,7 @@ def local_ai_chat_handler(text, line_bot_api, event):
 # 引入 Local AI 相關模組（假設為自訂模組）
 import rag_ai_chat
 
-def rag_ai_chat_handler(text, line_bot_api, event):
+def rag_ai_chat_function(text, line_bot_api, event):
 # 過濾掉進入聊天模式的指令本身與退出指令
     if text not in ['', '0']:
         # 如果使用者輸入'r'，讓AI「失憶」（重置對話）
@@ -116,6 +124,7 @@ def rag_ai_chat_handler(text, line_bot_api, event):
                     )]
                 )
             )
+            conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
 
         # 處理一般聊天輸入
         if text != 'r':
@@ -131,7 +140,9 @@ def rag_ai_chat_handler(text, line_bot_api, event):
                     )]
                 )
             )
+            conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
 
     # 如果使用者輸入0，關閉訪問叔叔AI（退出聊天模式）
     if text == '0':
         allow_validator.enable_ai_chat(False)
+        conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話

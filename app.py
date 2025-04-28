@@ -99,6 +99,8 @@ role=ai_character_settings.AiCharacterSettings.role           # AI的角色設�
 
 from allow_validator import allow_validator
 from training_validator import training_validator
+from conversation_validator import conversation_validator
+
 
 def set_states(fetch=False, chat=False, predict=False, train=False):
     """集中管理所有狀態設置"""
@@ -121,99 +123,117 @@ def is_any_state_active():
 def handle_message(event):
     # 取得使用者輸入的文字內容
     text = event.message.text
-    
-    # 初始化 LINE Messaging API 客戶端
-    with ApiClient(configuration) as api_client:
-        line_bot_api = MessagingApi(api_client)
 
-        if text == 'Deemo':  # 當用戶輸入的訊息是「Deemo」時觸發
-            import Deemo_carousel_template  # 導入自定義的 Deemo_carousel_template 模組
-            Deemo_carousel_template.reply_with_deemo_carousel(
-                line_bot_api,       # 傳入 LINE Bot API 實例，用於發送訊息
-                event.reply_token,   # 傳入當前事件的回覆令牌，確保訊息回覆給正確用戶
-            )
-            text = ""
+    if not conversation_validator.is_allow_conversation():
+        print("太頻繁被訪問摟!!")
+   
+    # 如果目前沒有訊息未處理完，那就可以接受新訊息
+    if conversation_validator.is_allow_conversation():
+        conversation_validator.enable_allow_conversation(False) # 如果接受了新訊息，就拒絕其他訊息
 
 
-        if is_any_state_active() == False:
-            # 處理「股票查詢」指令
-            if text in ['1', '叔叔我要報', '叔叔我要抱']:
-                # 回覆操作指引
-                line_bot_api.reply_message(
-                    ReplyMessageRequest(
-                        reply_token=event.reply_token,
-                        messages=[TextMessage(text=f'{role}要給你報，請輸入股票代號，或按0退出')]
-                    )
+        # 初始化 LINE Messaging API 客戶端
+        with ApiClient(configuration) as api_client:
+            line_bot_api = MessagingApi(api_client)
+
+            if text == 'Deemo':  # 當用戶輸入的訊息是「Deemo」時觸發
+                import Deemo_carousel_template  # 導入自定義的 Deemo_carousel_template 模組
+                Deemo_carousel_template.reply_with_deemo_carousel(
+                    line_bot_api,       # 傳入 LINE Bot API 實例，用於發送訊息
+                    event.reply_token,   # 傳入當前事件的回覆令牌，確保訊息回覆給正確用戶
                 )
                 text = ""
+
+
+            if is_any_state_active() == False:
+                # 處理「股票查詢」指令
+                if text in ['1', '叔叔我要報', '叔叔我要抱']:
+                    # 回覆操作指引
+                    line_bot_api.reply_message(
+                        ReplyMessageRequest(
+                            reply_token=event.reply_token,
+                            messages=[TextMessage(text=f'{role}要給你報，請輸入股票代號，或按0退出')]
+                        )
+                    )
+                    text = ""
+                    conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+                    
+                    # 狀態機設定
+                    set_states(fetch=True)
+
+                # 處理「聊天模式」指令    
+                elif text in ['2', '我要撩叔叔', '我要聊叔叔']:
+                    line_bot_api.reply_message(
+                        ReplyMessageRequest(
+                            reply_token=event.reply_token,
+                            messages=[TextMessage(text=f'{role}跟你聊，請輸入你要的聊的，或按0退出')]
+                        )
+                    )
+                    text = ""
+                    conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+
+                    # 狀態機設定
+                    set_states(chat=True)
+
+                # 處理「股票分析」指令
+                elif text in ['3', '叔叔我要分析']:
+                    line_bot_api.reply_message(
+                        ReplyMessageRequest(
+                            reply_token=event.reply_token,
+                            messages=[TextMessage(text=f'{role}給你分析，請輸入你要詢問的股票代號，或按0退出')]
+                        )
+                    )
+                    text = ""
+                    conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+
+                    # 狀態機設定
+                    set_states(predict=True)
                 
-                # 狀態機設定
-                set_states(fetch=True)
+                else :
+                    conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
 
-            # 處理「聊天模式」指令    
-            elif text in ['2', '我要撩叔叔', '我要聊叔叔']:
-                line_bot_api.reply_message(
-                    ReplyMessageRequest(
-                        reply_token=event.reply_token,
-                        messages=[TextMessage(text=f'{role}跟你聊，請輸入你要的聊的，或按0退出')]
-                    )
+
+
+
+    #==========================================================
+
+            # 檢查是否處於爬蟲模式（允許查詢股票資料的狀態）
+            if allow_validator.is_allow_fetch_stock_data():
+
+                import fetch_stock_data_handler
+                fetch_stock_data_handler.fetch_stock_data_handler(
+                    text=text,
+                    line_bot_api=line_bot_api,
+                    event=event
                 )
-                text = ""
-
-                # 狀態機設定
-                set_states(chat=True)
-
-            # 處理「股票分析」指令
-            elif text in ['3', '叔叔我要分析']:
-                line_bot_api.reply_message(
-                    ReplyMessageRequest(
-                        reply_token=event.reply_token,
-                        messages=[TextMessage(text=f'{role}給你分析，請輸入你要詢問的股票代號，或按0退出')]
-                    )
+                
+            # 如果訪問叔叔AI（聊天模式）已經開啟則進入循環
+            if allow_validator.is_allow_ai_chat():
+                import ai_chat_handler
+                # google_ai_chat_function >> 用google的AI
+                # local_ai_chat_function >> 用本地的AI
+                # rag_ai_chat_function >> 智能聊天與網路檢索（RAG）整合主流程，但是api消耗較大，可以換成本地AI
+                ai_chat_handler.rag_ai_chat_function(  # 可替換為其他的方法(function)
+                    text=text,
+                    line_bot_api=line_bot_api,
+                    event=event
                 )
-                text = ""
-
-                # 狀態機設定
-                set_states(predict=True)
 
 
-
-
-
-
-#==========================================================
-
-        # 檢查是否處於爬蟲模式（允許查詢股票資料的狀態）
-        if allow_validator.is_allow_fetch_stock_data():
-
-            import fetch_stock_data_handler
-            fetch_stock_data_handler.fetch_stock_data_handler(
-                text=text,
-                line_bot_api=line_bot_api,
-                event=event
-            )
-            
-        # 如果訪問叔叔AI（聊天模式）已經開啟則進入循環
-        if allow_validator.is_allow_ai_chat():
-            import ai_chat_handler
-            # google_ai_chat_handler >> 用google的AI
-            # local_ai_chat_handler >> 用本地的AI
-            # rag_ai_chat_handler >> 智能聊天與網路檢索（RAG）整合主流程，但是api消耗較大，可以換成本地AI
-            ai_chat_handler.rag_ai_chat_handler(  # 可替換為其他的處理方式(handler)
-                text=text,
-                line_bot_api=line_bot_api,
-                event=event
-            )
-
-
-        # 如果「智能預測模式」已開啟
-        if allow_validator.is_allow_intelligent_prediction():
-            import intelligent_prediction_handler
-            intelligent_prediction_handler.intelligent_prediction_handler(
-                text=text,
-                line_bot_api=line_bot_api,
-                event=event
-            )
+            # 如果「智能預測模式」已開啟
+            if allow_validator.is_allow_intelligent_prediction():
+                import intelligent_prediction_handler
+                # ANN_OHLCV_output5_intelligent_prediction_function >> 輸入開高低收，5輸出
+                # ANN_OHLCV_output2_intelligent_prediction_function >> 輸入開高低收，2輸出
+                # ANN_3DayKbar_output5_intelligent_prediction_function >> 輸入3天k棒，5輸出
+                # ANN_3DayKbar_output2_intelligent_prediction_function >> 輸入3天k棒，2輸出  
+                #   
+                # 可替換為其他的方法(function)        
+                intelligent_prediction_handler.ANN_3DayKbar_output5_intelligent_prediction_function( 
+                    text=text,
+                    line_bot_api=line_bot_api,
+                    event=event
+                )
             
 
             
