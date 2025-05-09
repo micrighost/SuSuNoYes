@@ -13,8 +13,8 @@ import get_https_url
 # 引入自訂的台灣證交所資料爬蟲模組
 import WebCrawler_MIS_TWSE
 
-from allow_validator import allow_validator
-from conversation_validator import conversation_validator
+from validators import allow_validator
+from validators import conversation_validator
 
 
 # 載入個性和腳色
@@ -22,7 +22,8 @@ import ai_character_settings
 adjective=ai_character_settings.AiCharacterSettings.adjective # AI的個性形容詞
 role=ai_character_settings.AiCharacterSettings.role           # AI的角色設定
 
-def fetch_stock_data_handler(text, line_bot_api, event):
+def fetch_stock_data_handler(text, line_bot_api, event, user_id):
+
     # 驗證股票代號是否有效（檢查是否能取得資料）
     if WebCrawler_MIS_TWSE.webcrawler_true(text):
         
@@ -87,10 +88,10 @@ def fetch_stock_data_handler(text, line_bot_api, event):
                     ]
                 )
             )
-            conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+            conversation_validator.conversation_validator.enable_allow_conversation(user_id, True) 
 
             # 關閉爬蟲模式（避免重複觸發）
-            allow_validator.enable_fetch_stock_data(False)
+            allow_validator.allow_validator.enable_fetch_stock_data(user_id, False)
 
     # ---------------------------
     # 處理無效輸入
@@ -103,13 +104,13 @@ def fetch_stock_data_handler(text, line_bot_api, event):
                 messages=[TextMessage(text=f'沒有這股票不要騙{role}，給我輸入股票代號，或按0退出')]
             )
         )
-        conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+        conversation_validator.conversation_validator.enable_allow_conversation(user_id, True)
 
     # ---------------------------
     # 處理退出指令
     # ---------------------------
     if text == '0':
         # 關閉爬蟲模式
-        allow_validator.enable_fetch_stock_data(False)
+        allow_validator.allow_validator.enable_fetch_stock_data(user_id, False)
         
-        conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+        conversation_validator.conversation_validator.enable_allow_conversation(user_id, True)  

@@ -6,7 +6,7 @@ import local_ai        # 匯入本地 AI 聊天模組（例如本地 LLM）
 model = google_ai.ai_chat
 # model = local_ai.ai_chat  # 若要切換為本地 AI，將上方註解，這行取消註解
 
-def rag_ai_chat(query="你好", adjective="可愛的", role="妹妹", reset_input="r"):
+def rag_ai_chat(query="你好", adjective="可愛的", role="妹妹", reset_input="r", user_id=None):
     """
     智能聊天與網路檢索（RAG）整合主流程
     1. 先用語言模型嘗試直接回答問題
@@ -18,6 +18,7 @@ def rag_ai_chat(query="你好", adjective="可愛的", role="妹妹", reset_inpu
         adjective (str): AI 角色形容詞（如「可愛的」）
         role (str): AI 角色（如「妹妹」）
         reset_input (str): 對話歷史重置控制（'r'重置，其他值不重置）
+        user_id (str): 用戶唯一識別ID
     回傳：
         str: AI 回覆內容
     """
@@ -32,14 +33,15 @@ def rag_ai_chat(query="你好", adjective="可愛的", role="妹妹", reset_inpu
         現在請回答：{query}
         """,
         f"你是{adjective}{role}，喜歡跟我聊天",
-        f"{reset_input}"
+        f"{reset_input}",
+        user_id=user_id
     )
     
     # 若模型回覆 "search"，進入檢索增強流程
     if "search" in response.lower():
         print(f"\n{role}：等我查一下資料喔～")
         search_term = query
-        answer = search_and_answer(search_term)
+        answer = search_and_answer(search_term, adjective=adjective, role=role, user_id=user_id)
         return answer
     else:
         # 若能直接回答，直接輸出
@@ -47,7 +49,7 @@ def rag_ai_chat(query="你好", adjective="可愛的", role="妹妹", reset_inpu
         print(response)
         return response
 
-def search_and_answer(search_term, max_retries=5, adjective="可愛的", role="妹妹"):
+def search_and_answer(search_term, max_retries=5, adjective="可愛的", role="妹妹", user_id=None):
     """
     搜尋並根據檢索內容生成答案
     1. 自動生成適合的搜尋關鍵詞
@@ -61,6 +63,7 @@ def search_and_answer(search_term, max_retries=5, adjective="可愛的", role="�
         max_retries (int): 最大重試次數（換不同關鍵詞）
         adjective (str): AI 角色形容詞
         role (str): AI 角色
+        user_id (str): 用戶唯一識別ID
     回傳：
         str: AI 回覆內容（若多次失敗則回傳預設訊息）
     """
@@ -75,7 +78,8 @@ def search_and_answer(search_term, max_retries=5, adjective="可愛的", role="�
         kearch_keywords = model( 
             f"幫我下搜尋{search_term}的關鍵詞{uniqueness}，你只能回覆要在瀏覽器上輸入的搜尋詞",
             f"你是{adjective}{role}",
-            "1"
+            "1",
+            user_id=user_id
         )
         print(f"\n{role}正在用這些關鍵詞找資料: {kearch_keywords}")
 
@@ -104,7 +108,8 @@ def search_and_answer(search_term, max_retries=5, adjective="可愛的", role="�
         can_answer = model(
             f"這些資料：\n{full_text[:2000]}...能回答'{search_term}'嗎？只能回答yes或no",
             "嚴謹的資料審查員",
-            "1"
+            "1",
+            user_id=user_id
         )
 
         # 若模型判斷「可以回答」
@@ -120,7 +125,8 @@ def search_and_answer(search_term, max_retries=5, adjective="可愛的", role="�
                 3. 如果資料不完整就直接說不知道
                 """,
                 f"你是{adjective}{role}，喜歡跟我聊天",
-                "1"
+                "1",
+                user_id=user_id
             )
             print(f"\n{role}找到答案了：")
             print(answer)

@@ -190,7 +190,7 @@ def train_model(X_train, y_train, epochs=50, batch_size=32, validation_split=0.2
     history = model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, validation_split=validation_split)
 
     import matplotlib
-    matplotlib.use('Agg')  # 使用非 GUI 後端，防止非主線程中嘗試執行 GUI而報錯
+    matplotlib.use('Agg')  # 使用非GUI的Agg後端，這樣 Matplotlib 就不會嘗試開啟視窗或用 GUI，只會把圖存成檔案
     import matplotlib.pyplot as plt
 
     # 繪製訓練 & 驗證的準確率值

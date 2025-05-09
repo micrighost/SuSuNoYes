@@ -7,17 +7,19 @@ from linebot.v3.messaging import (
 )
 
 import get_https_url
-from conversation_validator import conversation_validator
+from validators import conversation_validator
 
-def reply_with_deemo_carousel(line_bot_api, reply_token):
+def reply_with_deemo_carousel(line_bot_api, reply_token, user_id):
     """
     傳入line_bot_api和reply_token，把Deemo的訊息用輪播方式呈現
     
     參數:
         line_bot_api：
             這是 LINE Messaging API 的物件，用來與 LINE 平台溝通，發送各種訊息。
-        event.reply_token：
+        reply_token：
             這是 LINE 傳來的事件物件中的回覆權杖，每次用戶互動時 LINE 伺服器都會給一個唯一的 token，必須用這個 token 才能正確回覆該用戶。
+        user_id:
+            用戶的唯一識別ID，用來管理該用戶的對話狀態。
     """
 
     # 圖片資源
@@ -65,4 +67,5 @@ def reply_with_deemo_carousel(line_bot_api, reply_token):
             messages =[carousel_message]
         )
     )
-    conversation_validator.enable_allow_conversation(True) # 允許接受新傳入對話
+    # 改成帶入 user_id
+    conversation_validator.conversation_validator.enable_allow_conversation(user_id, True) # 允許接受新傳入對話
