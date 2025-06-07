@@ -137,7 +137,8 @@ def reset_conversation_after_delay(user_id, delay=60):
 
     def reset():
         conversation_validator.conversation_validator.enable_allow_conversation(user_id, True)
-        print(f"[Reset] 用戶 {user_id} 的對話狀態已於 {delay} 秒後重置為允許。")
+        print(f"[Reset] 用戶 {user_id} 的對話狀態已經過 {delay} 秒，已被重置為允許。")
+        
         # 計時器執行完畢，從字典移除
         timers.pop(user_id, None)
 
